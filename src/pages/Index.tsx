@@ -10,10 +10,13 @@ import { StatCard } from '@/components/StatCard';
 import { VisitorChart } from '@/components/VisitorChart';
 import { AISummary } from '@/components/AISummary';
 import { getTrackingScript } from '@/lib/tracker';
+import { getAnalyticsSummary } from '@/lib/supabase';
 
 const Index = () => {
   const [dateRange, setDateRange] = useState('Last 30 days');
   const [scriptCopied, setScriptCopied] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [siteId, setSiteId] = useState<string>(() => {
     // Generate a unique site ID if not already stored
     const stored = localStorage.getItem('claro_site_id');
@@ -23,6 +26,24 @@ const Index = () => {
     localStorage.setItem('claro_site_id', newId);
     return newId;
   });
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const result = await getAnalyticsSummary(siteId);
+        if (result.success && result.data) {
+          setAnalyticsData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
+  }, [siteId, dateRange]);
 
   const handleFilterClick = () => {
     toast('Filter functionality coming soon!', {
@@ -41,7 +62,7 @@ const Index = () => {
 
   const copyTrackingScript = () => {
     try {
-      // In production, this would be your actual domain
+      // Use the current origin or a deployment URL in production
       const endpoint = window.location.origin;
       const script = `<script src="${endpoint}/tracker.js" data-site-id="${siteId}" defer></script>`;
       
@@ -78,7 +99,7 @@ const Index = () => {
         </div>
 
         <div className="flex flex-col space-y-6">
-          <AISummary siteId={siteId} />
+          <AISummary siteId={siteId} data={analyticsData} />
           
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">

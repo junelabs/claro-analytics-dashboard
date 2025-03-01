@@ -58,5 +58,5 @@ export const trackerScript = `
 export const getTrackingScript = (siteId: string, endpoint: string): string => {
   return trackerScript
     .replace('{{TRACKING_ENDPOINT}}', endpoint)
-    .replace('data-site-id="YOUR-SITE-ID"', `data-site-id="${siteId}"`);
+    .replace(/data-site-id=".*?"/, `data-site-id="${siteId}"`);
 };
