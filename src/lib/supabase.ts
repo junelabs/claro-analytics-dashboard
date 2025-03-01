@@ -22,9 +22,12 @@ function createMockClient() {
   return {
     from: () => ({
       insert: () => Promise.resolve({ data: null, error: null }),
-      select: () => Promise.resolve({ data: [], error: null }),
-      eq: () => ({ gte: () => Promise.resolve({ data: [], error: null }) }),
-      gte: () => Promise.resolve({ data: [], error: null }),
+      select: () => ({
+        eq: () => ({
+          gte: () => Promise.resolve({ data: [], error: null })
+        }),
+        gte: () => Promise.resolve({ data: [], error: null })
+      }),
     }),
   } as any;
 }
@@ -72,6 +75,25 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
     const periodDays = parseInt(period.replace('d', '')) || 30;
     const startDate = new Date(now.setDate(now.getDate() - periodDays)).toISOString();
     
+    // Use the mock data in development
+    if (isMissingCredentials) {
+      return { 
+        success: true, 
+        data: {
+          pageViews: 42,
+          uniqueVisitors: 15,
+          topPages: generateMockData(period).reduce((acc, item) => {
+            const url = item.url;
+            if (!acc[url]) acc[url] = 0;
+            acc[url]++;
+            return acc;
+          }, {}).map((url, views) => ({ url, views })).slice(0, 5),
+          period,
+          rawData: generateMockData(period)
+        } 
+      };
+    }
+    
     const { data, error } = await supabase
       .from('page_views')
       .select('*')
@@ -83,10 +105,8 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
       throw error;
     }
     
-    // If we're in development with missing credentials, return mock data
-    const pageViewData = isMissingCredentials ? generateMockData(period) : data;
-    
     // Process the raw data into useful metrics
+    const pageViewData = data || [];
     const pageViews = pageViewData.length;
     const uniqueUrls = new Set(pageViewData.map(view => view.url)).size;
     const uniqueUserAgents = new Set(pageViewData.map(view => view.user_agent)).size;

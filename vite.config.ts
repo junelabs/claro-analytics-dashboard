@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       '/tracker.js': {
         target: 'http://localhost:8080',
-        bypass: (req) => {
+        bypass: () => {
           // This is just to indicate we want to handle this internally
           return true;
         }
