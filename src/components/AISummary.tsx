@@ -61,8 +61,8 @@ export const AISummary = ({ className, siteId, data }: AISummaryProps) => {
 
   const generateInsightFromData = (data: AnalyticsData) => {
     // Simple logic to generate insights based on the data
-    if (data.pageViews === 0) {
-      setSummary("No page views recorded yet. Make sure your tracking script is properly installed.");
+    if (!data || data.pageViews === 0) {
+      setSummary("No page views recorded yet. Make sure your tracking script is properly installed. Add it to the <head> section of your HTML and wait a few moments for data to start flowing.");
       return;
     }
 

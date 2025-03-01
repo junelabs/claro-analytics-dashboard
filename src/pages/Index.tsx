@@ -17,6 +17,8 @@ const Index = () => {
   const [scriptCopied, setScriptCopied] = useState(false);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentVisitors, setCurrentVisitors] = useState(0);
+  const [siteName, setSiteName] = useState('');
   const [siteId, setSiteId] = useState<string>(() => {
     // Generate a unique site ID if not already stored
     const stored = localStorage.getItem('claro_site_id');
@@ -34,6 +36,23 @@ const Index = () => {
         const result = await getAnalyticsSummary(siteId);
         if (result.success && result.data) {
           setAnalyticsData(result.data);
+          
+          // Extract domain from the first entry if available
+          if (result.data.rawData && result.data.rawData.length > 0) {
+            try {
+              const url = new URL(result.data.rawData[0].url);
+              setSiteName(url.hostname);
+            } catch (error) {
+              console.error("Error parsing URL:", error);
+              setSiteName('Your Website');
+            }
+          } else {
+            setSiteName('Your Website');
+          }
+          
+          // Set a random number of current visitors between 1-5 for demo purposes
+          // In a real app, you would calculate this from active sessions
+          setCurrentVisitors(Math.floor(Math.random() * 5) + 1);
         }
       } catch (error) {
         console.error('Error fetching analytics data:', error);
@@ -43,6 +62,11 @@ const Index = () => {
     }
     
     fetchData();
+    
+    // Refresh data every 30 seconds
+    const intervalId = setInterval(fetchData, 30000);
+    
+    return () => clearInterval(intervalId);
   }, [siteId, dateRange]);
 
   const handleFilterClick = () => {
@@ -103,8 +127,8 @@ const Index = () => {
           
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="text-sm font-medium">claro.so</div>
-              <CurrentVisitors count={129} />
+              <div className="text-sm font-medium">{siteName || 'Your Website'}</div>
+              <CurrentVisitors count={currentVisitors} />
             </div>
             <div className="flex items-center space-x-3">
               <FilterButton onClick={handleFilterClick} />
@@ -115,38 +139,40 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5">
             <StatCard
               title="Unique Visitors"
-              value="283k"
-              change={{ value: "6%", trend: "up" }}
+              value={analyticsData?.uniqueVisitors ? `${analyticsData.uniqueVisitors}` : "0"}
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
             <StatCard
               title="Total Visits"
-              value="496k"
-              change={{ value: "6%", trend: "up" }}
+              value={analyticsData?.pageViews ? `${analyticsData.pageViews}` : "0"}
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
             <StatCard
               title="Total Pageviews"
-              value="1.5M"
-              change={{ value: "14%", trend: "up" }}
+              value={analyticsData?.pageViews ? `${analyticsData.pageViews}` : "0"}
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
             <StatCard
               title="Views Per Visit"
-              value="3.11"
-              change={{ value: "9%", trend: "down" }}
+              value={analyticsData?.pageViews && analyticsData?.uniqueVisitors && analyticsData.uniqueVisitors > 0 
+                ? (analyticsData.pageViews / analyticsData.uniqueVisitors).toFixed(2) 
+                : "0"}
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
             <StatCard
               title="Bounce Rate"
-              value="47%"
-              change={{ value: "2%", trend: "up" }}
+              value="0%"
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
             <StatCard
               title="Visit Duration"
-              value="5m 46s"
-              change={{ value: "3%", trend: "up" }}
+              value="0s"
+              change={{ value: "0%", trend: "neutral" }}
               className="lg:col-span-1"
             />
           </div>

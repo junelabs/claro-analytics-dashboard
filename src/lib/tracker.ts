@@ -14,6 +14,8 @@ export const trackerScript = `
 
   // Track page view
   function trackPageView() {
+    console.log('Claro Analytics: Tracking page view for site ID', SITE_ID);
+    
     const data = {
       siteId: SITE_ID,
       url: window.location.href,
@@ -52,6 +54,9 @@ export const trackerScript = `
 
   // Handle navigation events
   window.addEventListener('popstate', trackPageView);
+  
+  // Log successful initialization
+  console.log('Claro Analytics: Successfully initialized for site ID', SITE_ID);
 })();
 `;
 
