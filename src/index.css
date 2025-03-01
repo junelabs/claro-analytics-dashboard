@@ -99,6 +99,32 @@
   @apply p-4 bg-white rounded-lg border border-gray-100 shadow-sm mt-6 overflow-hidden;
 }
 
+/* Claro specific text colors */
+.text-claro-purple {
+  color: #7B68EE;
+}
+
+.text-claro-light-purple {
+  color: #9887F0;
+}
+
+.text-claro-green {
+  color: #10B981;
+}
+
+.text-claro-red {
+  color: #EF4444;
+}
+
+/* Background colors */
+.bg-claro-purple {
+  background-color: #7B68EE;
+}
+
+.bg-claro-light-purple {
+  background-color: #9887F0;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

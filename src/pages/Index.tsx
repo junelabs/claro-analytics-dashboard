@@ -8,6 +8,7 @@ import { DateRangePicker } from '@/components/DateRangePicker';
 import { FilterButton } from '@/components/FilterButton';
 import { StatCard } from '@/components/StatCard';
 import { VisitorChart } from '@/components/VisitorChart';
+import { AISummary } from '@/components/AISummary';
 
 const Index = () => {
   const [dateRange, setDateRange] = useState('Last 30 days');
@@ -57,6 +58,8 @@ const Index = () => {
         </div>
 
         <div className="flex flex-col space-y-6">
+          <AISummary />
+          
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="text-sm font-medium">claro.so</div>
