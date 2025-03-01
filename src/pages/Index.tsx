@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Layout } from '@/components/Layout';
 import { Header } from '@/components/Header';
@@ -9,10 +9,20 @@ import { FilterButton } from '@/components/FilterButton';
 import { StatCard } from '@/components/StatCard';
 import { VisitorChart } from '@/components/VisitorChart';
 import { AISummary } from '@/components/AISummary';
+import { getTrackingScript } from '@/lib/tracker';
 
 const Index = () => {
   const [dateRange, setDateRange] = useState('Last 30 days');
   const [scriptCopied, setScriptCopied] = useState(false);
+  const [siteId, setSiteId] = useState<string>(() => {
+    // Generate a unique site ID if not already stored
+    const stored = localStorage.getItem('claro_site_id');
+    if (stored) return stored;
+    
+    const newId = 'site_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('claro_site_id', newId);
+    return newId;
+  });
 
   const handleFilterClick = () => {
     toast('Filter functionality coming soon!', {
@@ -30,14 +40,24 @@ const Index = () => {
   };
 
   const copyTrackingScript = () => {
-    const script = `<script src="https://claro.so/tracker.js" data-site-id="YOUR-SITE-ID" defer></script>`;
-    navigator.clipboard.writeText(script);
-    setScriptCopied(true);
-    toast.success('Tracking script copied to clipboard!', {
-      description: 'Paste this in the <head> section of your website.',
-    });
-    
-    setTimeout(() => setScriptCopied(false), 3000);
+    try {
+      // In production, this would be your actual domain
+      const endpoint = window.location.origin;
+      const script = `<script src="${endpoint}/tracker.js" data-site-id="${siteId}" defer></script>`;
+      
+      navigator.clipboard.writeText(script);
+      setScriptCopied(true);
+      toast.success('Tracking script copied to clipboard!', {
+        description: 'Paste this in the <head> section of your website.',
+      });
+      
+      setTimeout(() => setScriptCopied(false), 3000);
+    } catch (error) {
+      console.error('Failed to copy tracking script:', error);
+      toast.error('Failed to copy tracking script', {
+        description: 'Please try again or copy it manually.',
+      });
+    }
   };
 
   return (
@@ -58,7 +78,7 @@ const Index = () => {
         </div>
 
         <div className="flex flex-col space-y-6">
-          <AISummary />
+          <AISummary siteId={siteId} />
           
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
