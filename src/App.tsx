@@ -7,22 +7,24 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { handleTrackingRequest } from "./lib/supabase";
+import { getTrackingScript } from "./lib/tracker";
 
 const queryClient = new QueryClient();
 
-// Create a simple handler for the tracking script
-const serveTrackingScript = async () => {
+// Create a proper handler for the tracking script
+const serveTrackingScript = async (req: Request) => {
   try {
-    const response = await fetch('/src/lib/tracker.ts');
-    const scriptContent = await response.text();
+    const url = new URL(req.url);
+    const siteId = url.searchParams.get('siteId') || '';
+    const endpoint = `${url.origin}`;
     
-    // Extract just the tracker script content
-    const scriptMatch = scriptContent.match(/`([\s\S]*?)`/);
-    const trackerJs = scriptMatch ? scriptMatch[1] : '';
+    // Generate tracking script with proper endpoint
+    const script = getTrackingScript(siteId, endpoint);
     
-    return new Response(trackerJs, {
+    return new Response(script, {
       headers: {
         'Content-Type': 'application/javascript',
+        'Cache-Control': 'public, max-age=3600',
       },
     });
   } catch (error) {
@@ -42,7 +44,7 @@ const apiRouteHandler = async (request: Request) => {
   
   // Serve the tracking script
   if (url.pathname === '/tracker.js') {
-    return serveTrackingScript();
+    return serveTrackingScript(request);
   }
   
   // Handle tracking endpoint

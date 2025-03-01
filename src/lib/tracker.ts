@@ -25,6 +25,8 @@ export const trackerScript = `
       screenHeight: window.innerHeight
     };
 
+    console.log('Claro Analytics: Sending data:', data);
+
     // Use sendBeacon if available, fall back to fetch
     if (navigator.sendBeacon) {
       navigator.sendBeacon(TRACKING_ENDPOINT + '/api/track', JSON.stringify(data));
