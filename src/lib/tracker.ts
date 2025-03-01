@@ -25,24 +25,42 @@ export const trackerScript = `
       screenHeight: window.innerHeight
     };
 
-    console.log('Claro Analytics: Sending data:', data);
+    console.log('Claro Analytics: Sending data to ' + TRACKING_ENDPOINT + '/api/track');
 
     // Use sendBeacon if available, fall back to fetch
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(TRACKING_ENDPOINT + '/api/track', JSON.stringify(data));
+      try {
+        const sent = navigator.sendBeacon(TRACKING_ENDPOINT + '/api/track', JSON.stringify(data));
+        console.log('Claro Analytics: Beacon sent successfully:', sent);
+      } catch (err) {
+        console.error('Claro Analytics: Beacon error', err);
+        sendWithFetch();
+      }
     } else {
+      sendWithFetch();
+    }
+    
+    function sendWithFetch() {
       fetch(TRACKING_ENDPOINT + '/api/track', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json'
         },
+        mode: 'cors',
         keepalive: true
-      }).catch(err => console.error('Claro Analytics:', err));
+      })
+      .then(response => {
+        console.log('Claro Analytics: Fetch response status:', response.status);
+        return response.text();
+      })
+      .then(text => console.log('Claro Analytics: Response:', text))
+      .catch(err => console.error('Claro Analytics: Fetch error', err));
     }
   }
 
   // Track initial page view
+  console.log('Claro Analytics: Script loaded from ' + TRACKING_ENDPOINT);
   trackPageView();
 
   // Track navigation changes for SPAs
@@ -50,6 +68,7 @@ export const trackerScript = `
   new MutationObserver(() => {
     if (lastUrl !== window.location.href) {
       lastUrl = window.location.href;
+      console.log('Claro Analytics: URL changed, tracking new page view');
       trackPageView();
     }
   }).observe(document, { subtree: true, childList: true });

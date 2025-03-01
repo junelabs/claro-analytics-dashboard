@@ -21,10 +21,14 @@ const serveTrackingScript = async (req: Request) => {
     // Generate tracking script with proper endpoint
     const script = getTrackingScript(siteId, endpoint);
     
+    // Add CORS headers to allow cross-origin requests
     return new Response(script, {
       headers: {
         'Content-Type': 'application/javascript',
         'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
       },
     });
   } catch (error) {
@@ -32,6 +36,7 @@ const serveTrackingScript = async (req: Request) => {
     return new Response('console.error("Error loading tracking script");', {
       headers: {
         'Content-Type': 'application/javascript',
+        'Access-Control-Allow-Origin': '*'
       },
       status: 500,
     });
@@ -42,6 +47,18 @@ const serveTrackingScript = async (req: Request) => {
 const apiRouteHandler = async (request: Request) => {
   const url = new URL(request.url);
   
+  // Handle preflight OPTIONS requests for CORS
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '86400'
+      }
+    });
+  }
+  
   // Serve the tracking script
   if (url.pathname === '/tracker.js') {
     return serveTrackingScript(request);
@@ -49,11 +66,27 @@ const apiRouteHandler = async (request: Request) => {
   
   // Handle tracking endpoint
   if (url.pathname === '/api/track' && request.method === 'POST') {
-    return handleTrackingRequest(request);
+    // Add CORS headers to the tracking response
+    const response = await handleTrackingRequest(request);
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    responseHeaders.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders
+    });
   }
   
   // Return a 404 for any other API routes
-  return new Response('Not found', { status: 404 });
+  return new Response('Not found', { 
+    status: 404,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
 };
 
 // Check if the request is for the API

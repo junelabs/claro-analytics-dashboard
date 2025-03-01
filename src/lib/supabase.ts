@@ -182,15 +182,28 @@ function generateMockData(period: string) {
 export const handleTrackingRequest = async (request: Request) => {
   try {
     const data = await request.json();
+    console.log('Received tracking data:', data);
+    
     const result = await trackPageView(data);
+    
     return new Response(JSON.stringify(result), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
       status: result.success ? 200 : 500
     });
   } catch (error) {
     console.error('Error handling tracking request:', error);
     return new Response(JSON.stringify({ success: false, error: 'Invalid request data' }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
       status: 400
     });
   }
