@@ -33,6 +33,8 @@ export const trackPageView = async (data: {
         user_agent: data.userAgent,
         screen_width: data.screenWidth,
         screen_height: data.screenHeight,
+        // The created_at will be handled by Supabase's now() default
+        // The timestamp field matches what we have in the schema
         timestamp: new Date().toISOString()
       }]);
     
@@ -59,7 +61,7 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
       .from('page_views')
       .select('*')
       .eq('site_id', siteId)
-      .gte('timestamp', startDate);
+      .gte('created_at', startDate);
     
     if (error) {
       console.error('Error fetching analytics:', error);
