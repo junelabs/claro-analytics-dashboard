@@ -2,17 +2,32 @@
 import { createClient } from '@supabase/supabase-js';
 
 // These environment variables are automatically provided when Supabase is connected
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('Supabase credentials missing. Please connect your Supabase project in the Lovable interface.');
+// Create a mock client for development when credentials are missing
+const isMissingCredentials = !supabaseUrl || !supabaseKey;
+
+if (isMissingCredentials) {
+  console.warn('Supabase credentials missing. Using mock implementation for development.');
 }
 
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseKey || ''
-);
+// Create client with fallback for development
+export const supabase = isMissingCredentials 
+  ? createMockClient() 
+  : createClient(supabaseUrl, supabaseKey);
+
+// Create a mock client that doesn't throw errors during development
+function createMockClient() {
+  return {
+    from: () => ({
+      insert: () => Promise.resolve({ data: null, error: null }),
+      select: () => Promise.resolve({ data: [], error: null }),
+      eq: () => ({ gte: () => Promise.resolve({ data: [], error: null }) }),
+      gte: () => Promise.resolve({ data: [], error: null }),
+    }),
+  } as any;
+}
 
 // Analytics tracking functions
 export const trackPageView = async (data: {
@@ -68,14 +83,17 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
       throw error;
     }
     
+    // If we're in development with missing credentials, return mock data
+    const pageViewData = isMissingCredentials ? generateMockData(period) : data;
+    
     // Process the raw data into useful metrics
-    const pageViews = data.length;
-    const uniqueUrls = new Set(data.map(view => view.url)).size;
-    const uniqueUserAgents = new Set(data.map(view => view.user_agent)).size;
+    const pageViews = pageViewData.length;
+    const uniqueUrls = new Set(pageViewData.map(view => view.url)).size;
+    const uniqueUserAgents = new Set(pageViewData.map(view => view.user_agent)).size;
     
     // Group page views by URL to find top pages
     const urlCounts: Record<string, number> = {};
-    data.forEach(view => {
+    pageViewData.forEach(view => {
       const url = view.url;
       urlCounts[url] = (urlCounts[url] || 0) + 1;
     });
@@ -93,7 +111,7 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
         uniqueVisitors: uniqueUserAgents,
         topPages,
         period,
-        rawData: data
+        rawData: pageViewData
       } 
     };
   } catch (error) {
@@ -101,6 +119,44 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
     return { success: false, error };
   }
 };
+
+// Generate mock data for development
+function generateMockData(period: string) {
+  const periodDays = parseInt(period.replace('d', '')) || 30;
+  const count = 10 + Math.floor(Math.random() * 50); // Random number of entries
+  const mockData = [];
+  
+  const paths = ['/home', '/about', '/pricing', '/blog', '/contact', '/products'];
+  const referrers = ['https://google.com', 'https://twitter.com', 'https://facebook.com', 'direct', ''];
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
+  ];
+  
+  // Generate entries for the last X days
+  for (let i = 0; i < count; i++) {
+    const daysAgo = Math.floor(Math.random() * periodDays);
+    const hoursAgo = Math.floor(Math.random() * 24);
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    date.setHours(date.getHours() - hoursAgo);
+    
+    mockData.push({
+      id: `mock-${i}`,
+      site_id: 'demo-site',
+      url: paths[Math.floor(Math.random() * paths.length)],
+      referrer: referrers[Math.floor(Math.random() * referrers.length)],
+      user_agent: userAgents[Math.floor(Math.random() * userAgents.length)],
+      screen_width: [1920, 1440, 1366, 375, 414][Math.floor(Math.random() * 5)],
+      screen_height: [1080, 900, 768, 812, 896][Math.floor(Math.random() * 5)],
+      timestamp: date.toISOString(),
+      created_at: date.toISOString()
+    });
+  }
+  
+  return mockData;
+}
 
 // Create an API endpoint handler for the tracking script
 export const handleTrackingRequest = async (request: Request) => {
