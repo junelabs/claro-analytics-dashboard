@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				claro: {
+					purple: '#7B68EE',
+					'light-purple': '#9b87f5',
+					'lighter-purple': '#D6BCFA',
+					'dark-purple': '#6E59A5',
+					red: '#FF5A5A',
+					green: '#0CCE6B',
 				}
 			},
 			borderRadius: {
@@ -84,11 +93,26 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-opacity': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'soft-bounce': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-dot': 'pulse-opacity 2s ease-in-out infinite',
+				'fade-in': 'fade-in 0.6s ease-out forwards',
+				'soft-bounce': 'soft-bounce 2s ease-in-out infinite'
 			}
 		}
 	},
