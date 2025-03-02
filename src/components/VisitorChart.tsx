@@ -10,30 +10,6 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
-// Sample data for demonstration - this would be replaced with real data
-const generateMockData = () => {
-  const data = [];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
-  const baseVisitors = 8000;
-  
-  for (let i = 30; i <= 30 + 28; i += 3) {
-    const month = months[Math.floor(Math.random() * months.length)];
-    let visitors = baseVisitors + Math.floor(Math.random() * 6000);
-    
-    // Create pattern with alternating high and low periods
-    if (i % 12 < 6) {
-      visitors = baseVisitors + Math.floor(Math.random() * 3000);
-    }
-
-    data.push({
-      date: `${i % 31} ${month}`,
-      visitors,
-    });
-  }
-  
-  return data;
-};
-
 interface ChartData {
   date: string;
   visitors: number;
@@ -41,25 +17,64 @@ interface ChartData {
 
 interface VisitorChartProps {
   timeRange: string;
+  analyticsData?: any; // Accept analytics data from parent
 }
 
-export const VisitorChart = ({ timeRange }: VisitorChartProps) => {
+export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) => {
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [animatedData, setAnimatedData] = useState<ChartData[]>([]);
 
   useEffect(() => {
-    // Simulate data loading based on time range
+    // Process real analytics data if available, otherwise use mock data
     setLoading(true);
     
-    const timer = setTimeout(() => {
-      const newData = generateMockData();
+    setTimeout(() => {
+      let newData: ChartData[] = [];
+      
+      if (analyticsData?.rawData && analyticsData.rawData.length > 0) {
+        console.log('Using real analytics data for chart');
+        
+        // Group data by date
+        const dateGroups: Record<string, number> = {};
+        
+        analyticsData.rawData.forEach((item: any) => {
+          // Extract date from timestamp
+          const date = new Date(item.timestamp || item.created_at);
+          const dateKey = `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
+          
+          // Count visitors per date
+          if (!dateGroups[dateKey]) {
+            dateGroups[dateKey] = 0;
+          }
+          dateGroups[dateKey]++;
+        });
+        
+        // Convert to chart data format
+        newData = Object.entries(dateGroups)
+          .map(([date, visitors]) => ({ date, visitors }))
+          .sort((a, b) => {
+            // Sort by date (parse the date like "15 Jun")
+            const [dayA, monthA] = a.date.split(' ');
+            const [dayB, monthB] = b.date.split(' ');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const monthIndexA = months.indexOf(monthA);
+            const monthIndexB = months.indexOf(monthB);
+            
+            if (monthIndexA !== monthIndexB) return monthIndexA - monthIndexB;
+            return parseInt(dayA) - parseInt(dayB);
+          });
+      } else {
+        console.log('Using mock data for chart');
+        // Fallback to mock data when no real data is available
+        newData = generateMockData();
+      }
+      
       setData(newData);
       setLoading(false);
     }, 500);
-
-    return () => clearTimeout(timer);
-  }, [timeRange]);
+  }, [timeRange, analyticsData]);
 
   useEffect(() => {
     if (!loading && data.length > 0) {
@@ -77,6 +92,25 @@ export const VisitorChart = ({ timeRange }: VisitorChartProps) => {
       return () => clearInterval(interval);
     }
   }, [loading, data]);
+
+  // Generate mock data when real data is not available
+  const generateMockData = () => {
+    const data: ChartData[] = [];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+    const baseVisitors = analyticsData?.pageViews ? Math.max(analyticsData.pageViews / 10, 10) : 100;
+    
+    for (let i = 1; i <= 10; i++) {
+      const month = months[Math.floor(Math.random() * months.length)];
+      let visitors = Math.floor(baseVisitors + Math.random() * baseVisitors * 0.5);
+      
+      data.push({
+        date: `${i} ${month}`,
+        visitors,
+      });
+    }
+    
+    return data;
+  };
 
   if (loading) {
     return (

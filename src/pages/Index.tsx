@@ -181,7 +181,7 @@ const Index = () => {
             <div className="text-sm font-medium text-gray-500">Days</div>
           </div>
 
-          <VisitorChart timeRange={dateRange} />
+          <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
         </div>
       </div>
     </Layout>
