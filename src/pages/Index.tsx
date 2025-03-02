@@ -128,7 +128,7 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="text-sm font-medium">{siteName || 'Your Website'}</div>
-              <CurrentVisitors count={currentVisitors} />
+              <CurrentVisitors count={currentVisitors} siteName={siteName} />
             </div>
             <div className="flex items-center space-x-3">
               <FilterButton onClick={handleFilterClick} />

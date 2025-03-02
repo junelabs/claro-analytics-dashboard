@@ -112,6 +112,20 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
     return data;
   };
 
+  // Calculate domain for Y axis based on actual data
+  const calculateYAxisDomain = () => {
+    if (!data || data.length === 0) return [0, 10];
+    
+    const maxVisitors = Math.max(...data.map(item => item.visitors));
+    const minVisitors = Math.min(...data.map(item => item.visitors));
+    
+    // Calculate a nice min and max for the Y axis
+    const yMin = Math.max(0, Math.floor(minVisitors * 0.8));
+    const yMax = Math.ceil(maxVisitors * 1.2); // Add 20% padding at the top
+    
+    return [yMin, yMax];
+  };
+
   if (loading) {
     return (
       <div className="chart-container animate-pulse h-[300px] flex items-center justify-center">
@@ -146,11 +160,12 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
             axisLine={{ stroke: '#e5e7eb' }}
           />
           <YAxis 
-            tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
+            tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
             tick={{ fontSize: 12, fill: '#9ca3af' }}
             tickLine={false}
             axisLine={false}
-            domain={['dataMin - 1000', 'dataMax + 1000']}
+            domain={calculateYAxisDomain()}
+            allowDecimals={false}
           />
           <Tooltip 
             contentStyle={{ 
