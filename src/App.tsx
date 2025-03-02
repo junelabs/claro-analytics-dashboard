@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,25 +10,20 @@ import { getTrackingScript } from "./lib/tracker";
 
 const queryClient = new QueryClient();
 
-// Create a proper handler for the tracking script
 const serveTrackingScript = async (req: Request) => {
   try {
     const url = new URL(req.url);
     const siteId = url.searchParams.get('siteId') || '';
-    // Use the origin from request or fallback to hardcoded endpoint
-    // This ensures the script works both in development and production
     const endpoint = `${url.origin}`;
     
     console.log('Serving tracking script for siteId:', siteId, 'endpoint:', endpoint);
     
-    // Generate tracking script with proper endpoint
     const script = getTrackingScript(siteId, endpoint);
     
-    // Add CORS headers to allow cross-origin requests
     return new Response(script, {
       headers: {
         'Content-Type': 'application/javascript',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',  // Disable caching for debugging
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
         'Access-Control-Allow-Origin': '*',
@@ -50,12 +44,10 @@ const serveTrackingScript = async (req: Request) => {
   }
 };
 
-// API route handler
 const apiRouteHandler = async (request: Request) => {
   const url = new URL(request.url);
   console.log('API route handler called for:', url.pathname, 'method:', request.method);
   
-  // Handle preflight OPTIONS requests for CORS
   if (request.method === 'OPTIONS') {
     console.log('Handling OPTIONS request for:', url.pathname);
     return new Response(null, {
@@ -69,19 +61,16 @@ const apiRouteHandler = async (request: Request) => {
     });
   }
   
-  // Serve the tracking script - note the path is exactly "/tracker.js"
   if (url.pathname === '/tracker.js') {
     console.log('Serving tracking script');
     return serveTrackingScript(request);
   }
   
-  // Handle tracking endpoint
   if (url.pathname === '/api/track') {
     console.log('Handling tracking request');
     return handleTrackingRequest(request);
   }
   
-  // Return a 404 for any other API routes
   console.log('Unknown API route:', url.pathname);
   return new Response('Not found', { 
     status: 404,
@@ -92,12 +81,10 @@ const apiRouteHandler = async (request: Request) => {
   });
 };
 
-// Check if the request is for the API
 const isApiRequest = (url: string) => {
   return url.includes('/api/') || url.includes('/tracker.js');
 };
 
-// Intercept requests for API routes
 if (typeof window !== 'undefined') {
   const originalFetch = window.fetch;
   window.fetch = async (input, init) => {
@@ -110,32 +97,80 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// Setup a specific route for tracker.js using the window.location object
 if (typeof window !== 'undefined') {
   const originalXHROpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function() {
-    // @ts-ignore - We know there are at least 2 arguments
     const url = arguments[1];
     if (typeof url === 'string' && url.includes('/tracker.js')) {
       console.log('Intercepting XHR for tracker.js:', url);
-      // @ts-ignore - We know there are at least 2 arguments
       const request = new Request(arguments[1]);
       const response = apiRouteHandler(request);
       
-      // Finish handling in fetch interception
+      return response;
     }
     return originalXHROpen.apply(this, arguments as any);
   };
   
-  // Handle direct access to tracker.js (from script src attribute)
   window.addEventListener('error', (event) => {
     const target = event.target as HTMLElement;
     if (target.tagName === 'SCRIPT' && (target as HTMLScriptElement).src?.includes('/tracker.js')) {
       console.log('Caught script error for tracker.js, will attempt to serve directly');
-      // We can't fix it here, but we can at least log it
     }
   }, true);
 }
+
+const pingInterval = 60000;
+let lastPingTime = 0;
+
+const pingActiveSession = async () => {
+  const siteId = localStorage.getItem('claro_site_id');
+  if (!siteId) return;
+  
+  const now = Date.now();
+  if (now - lastPingTime < pingInterval) return;
+  
+  try {
+    const pingData = {
+      siteId,
+      url: window.location.href,
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+      pageTitle: document.title,
+      timestamp: new Date().toISOString(),
+      isPing: true
+    };
+    
+    await fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pingData)
+    });
+    
+    lastPingTime = now;
+    console.log('Session ping sent at', new Date().toLocaleTimeString());
+  } catch (error) {
+    console.error('Error pinging active session:', error);
+  }
+};
+
+pingActiveSession();
+setInterval(pingActiveSession, pingInterval);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    pingActiveSession();
+  }
+});
+
+['click', 'scroll', 'keypress', 'mousemove'].forEach(eventType => {
+  let debounceTimer: number;
+  window.addEventListener(eventType, () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(pingActiveSession, 1000);
+  }, { passive: true });
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -150,7 +185,6 @@ const App = () => (
               __html: getTrackingScript('', window.location.origin) 
             }} />
           } />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Layout } from '@/components/Layout';
@@ -10,7 +9,7 @@ import { StatCard } from '@/components/StatCard';
 import { VisitorChart } from '@/components/VisitorChart';
 import { AISummary } from '@/components/AISummary';
 import { getTrackingScript } from '@/lib/tracker';
-import { getAnalyticsSummary } from '@/lib/supabase';
+import { getAnalyticsSummary, getActiveVisitorCount } from '@/lib/supabase';
 
 const Index = () => {
   const [dateRange, setDateRange] = useState('Last 30 days');
@@ -20,7 +19,6 @@ const Index = () => {
   const [currentVisitors, setCurrentVisitors] = useState(0);
   const [siteName, setSiteName] = useState('');
   const [siteId, setSiteId] = useState<string>(() => {
-    // Generate a unique site ID if not already stored
     const stored = localStorage.getItem('claro_site_id');
     if (stored) return stored;
     
@@ -28,6 +26,7 @@ const Index = () => {
     localStorage.setItem('claro_site_id', newId);
     return newId;
   });
+  const [isLiveCount, setIsLiveCount] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -37,16 +36,13 @@ const Index = () => {
         if (result.success && result.data) {
           setAnalyticsData(result.data);
           
-          // Extract domain from the first entry if available
           if (result.data.rawData && result.data.rawData.length > 0) {
             try {
               const url = result.data.rawData[0].url;
-              // If it's a full URL, extract just the domain
               if (url && url.includes('://')) {
                 const urlObj = new URL(url);
                 setSiteName(urlObj.hostname);
               } else if (url) {
-                // If it's just a domain or path
                 setSiteName(url.split('/')[0]);
               } else {
                 setSiteName('example.com');
@@ -59,13 +55,18 @@ const Index = () => {
             setSiteName('example.com');
           }
           
-          // Use the consistent visitor count from the analytics data
-          // No longer randomly generating visitors
-          if (result.data.currentVisitors !== undefined) {
-            setCurrentVisitors(result.data.currentVisitors);
+          const activeVisitorCount = await getActiveVisitorCount(siteId);
+          if (activeVisitorCount.success) {
+            setCurrentVisitors(activeVisitorCount.data);
+            setIsLiveCount(true);
           } else {
-            // Fallback to a consistent value if not provided
-            setCurrentVisitors(1);
+            if (result.data.currentVisitors !== undefined) {
+              setCurrentVisitors(result.data.currentVisitors);
+              setIsLiveCount(false);
+            } else {
+              setCurrentVisitors(0);
+              setIsLiveCount(false);
+            }
           }
         }
       } catch (error) {
@@ -77,8 +78,7 @@ const Index = () => {
     
     fetchData();
     
-    // Refresh data every 30 seconds
-    const intervalId = setInterval(fetchData, 30000);
+    const intervalId = setInterval(fetchData, 15000);
     
     return () => clearInterval(intervalId);
   }, [siteId, dateRange]);
@@ -100,7 +100,6 @@ const Index = () => {
 
   const copyTrackingScript = () => {
     try {
-      // Use the current origin or a deployment URL in production
       const endpoint = window.location.origin;
       const script = `<script src="${endpoint}/tracker.js" data-site-id="${siteId}" defer></script>`;
       
@@ -142,7 +141,7 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="text-sm font-medium">{siteName}</div>
-              <CurrentVisitors count={currentVisitors} siteName={siteName} />
+              <CurrentVisitors count={currentVisitors} siteName={siteName} isLive={isLiveCount} />
             </div>
             <div className="flex items-center space-x-3">
               <FilterButton onClick={handleFilterClick} />

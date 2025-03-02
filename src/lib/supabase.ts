@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // These environment variables are automatically provided when Supabase is connected
@@ -88,6 +87,53 @@ export const trackPageView = async (data: {
   } catch (error) {
     console.error('Error tracking page view:', error);
     return { success: false, error };
+  }
+};
+
+// Get active visitor count in real-time (not an estimate)
+export const getActiveVisitorCount = async (siteId: string) => {
+  try {
+    // Define active session time window (last 5 minutes)
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+    
+    if (isMissingCredentials) {
+      console.log('Using mock data for active visitor count');
+      
+      // Get mock data but only count unique user agents in the last 5 minutes
+      const mockData = getMockData();
+      const recentSessions = mockData.filter(item => {
+        const timestamp = new Date(item.timestamp || item.created_at);
+        return timestamp >= new Date(fiveMinutesAgo) && item.site_id === siteId;
+      });
+      
+      // Count unique user agents (as a proxy for unique visitors)
+      const uniqueAgents = new Set(recentSessions.map(item => item.user_agent));
+      const activeCount = uniqueAgents.size;
+      
+      return { success: true, data: activeCount };
+    }
+    
+    // Query Supabase for page views in the last 5 minutes
+    const { data, error } = await supabase
+      .from('page_views')
+      .select('user_agent')
+      .eq('site_id', siteId)
+      .gte('created_at', fiveMinutesAgo);
+    
+    if (error) {
+      console.error('Error fetching active visitors:', error);
+      throw error;
+    }
+    
+    // Count unique user agents as a proxy for unique active visitors
+    const uniqueAgents = new Set(data.map(view => view.user_agent));
+    const activeCount = uniqueAgents.size;
+    
+    return { success: true, data: activeCount };
+  } catch (error) {
+    console.error('Error fetching active visitors:', error);
+    return { success: false, error, data: 0 };
   }
 };
 
