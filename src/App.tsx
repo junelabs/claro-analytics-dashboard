@@ -140,7 +140,7 @@ const pingActiveSession = async () => {
       screenHeight: window.innerHeight,
       pageTitle: document.title,
       timestamp: new Date().toISOString(),
-      isPing: true
+      isPing: true  // Flag to identify this as a ping, not a page view
     };
     
     await fetch('/api/track', {

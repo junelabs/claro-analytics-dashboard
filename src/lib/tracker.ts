@@ -28,6 +28,15 @@ export const trackerScript = `
     debug.warn('No site ID provided. Add data-site-id attribute to your script tag. Tracking will continue but data may not be associated correctly.');
   }
 
+  // Check if this is the analytics dashboard to avoid self-tracking
+  const isAnalyticsDashboard = window.location.pathname === '/' && 
+    window.location.host.includes('lovable.app');
+  
+  if (isAnalyticsDashboard) {
+    debug.log('Analytics dashboard detected - not tracking to avoid inflating metrics');
+    return; // Exit early without tracking
+  }
+
   // Track page view
   function trackPageView() {
     debug.log('Tracking page view for site ID', SITE_ID || 'unknown');

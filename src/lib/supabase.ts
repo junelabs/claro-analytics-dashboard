@@ -44,9 +44,21 @@ export const trackPageView = async (data: {
   screenHeight: number;
   timestamp?: string;
   pageTitle?: string;
+  isPing?: boolean;
 }) => {
   try {
     console.log('Tracking page view:', data);
+    
+    // Skip tracking if this is the analytics dashboard itself (unless it's a ping)
+    const isAnalyticsDashboard = 
+      data.url.includes('lovable.app') && 
+      !data.url.includes('?') && 
+      !data.isPing;
+    
+    if (isAnalyticsDashboard) {
+      console.log('Skipping tracking for analytics dashboard itself');
+      return { success: true };
+    }
     
     if (isMissingCredentials) {
       // If in development, store the page view in localStorage mock data
