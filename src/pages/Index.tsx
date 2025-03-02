@@ -40,14 +40,23 @@ const Index = () => {
           // Extract domain from the first entry if available
           if (result.data.rawData && result.data.rawData.length > 0) {
             try {
-              const url = new URL(result.data.rawData[0].url);
-              setSiteName(url.hostname);
+              const url = result.data.rawData[0].url;
+              // If it's a full URL, extract just the domain
+              if (url && url.includes('://')) {
+                const urlObj = new URL(url);
+                setSiteName(urlObj.hostname);
+              } else if (url) {
+                // If it's just a domain or path
+                setSiteName(url.split('/')[0]);
+              } else {
+                setSiteName('example.com');
+              }
             } catch (error) {
               console.error("Error parsing URL:", error);
-              setSiteName('Your Website');
+              setSiteName('example.com');
             }
           } else {
-            setSiteName('Your Website');
+            setSiteName('example.com');
           }
           
           // Set a random number of current visitors between 1-5 for demo purposes
@@ -127,7 +136,7 @@ const Index = () => {
           
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="text-sm font-medium">{siteName || 'Your Website'}</div>
+              <div className="text-sm font-medium">{siteName}</div>
               <CurrentVisitors count={currentVisitors} siteName={siteName} />
             </div>
             <div className="flex items-center space-x-3">
