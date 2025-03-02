@@ -82,19 +82,28 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
     
     // Use the mock data in development
     if (isMissingCredentials) {
+      const mockData = generateMockData(period);
+      
+      // Create topPages from mockData correctly
+      const urlCounts: Record<string, number> = {};
+      mockData.forEach(item => {
+        const url = item.url;
+        urlCounts[url] = (urlCounts[url] || 0) + 1;
+      });
+      
+      const topPages = Object.entries(urlCounts)
+        .map(([url, views]) => ({ url, views }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 5);
+      
       return { 
         success: true, 
         data: {
-          pageViews: 42,
-          uniqueVisitors: 15,
-          topPages: generateMockData(period).reduce((acc, item) => {
-            const url = item.url;
-            if (!acc[url]) acc[url] = 0;
-            acc[url]++;
-            return acc;
-          }, {}).map((url, views) => ({ url, views })).slice(0, 5),
+          pageViews: mockData.length,
+          uniqueVisitors: new Set(mockData.map(item => item.user_agent)).size,
+          topPages,
           period,
-          rawData: generateMockData(period)
+          rawData: mockData
         } 
       };
     }
