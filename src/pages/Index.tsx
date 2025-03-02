@@ -59,9 +59,14 @@ const Index = () => {
             setSiteName('example.com');
           }
           
-          // Set a random number of current visitors between 1-5 for demo purposes
-          // In a real app, you would calculate this from active sessions
-          setCurrentVisitors(Math.floor(Math.random() * 5) + 1);
+          // Use the consistent visitor count from the analytics data
+          // No longer randomly generating visitors
+          if (result.data.currentVisitors !== undefined) {
+            setCurrentVisitors(result.data.currentVisitors);
+          } else {
+            // Fallback to a consistent value if not provided
+            setCurrentVisitors(1);
+          }
         }
       } catch (error) {
         console.error('Error fetching analytics data:', error);

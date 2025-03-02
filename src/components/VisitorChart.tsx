@@ -24,6 +24,7 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [animatedData, setAnimatedData] = useState<ChartData[]>([]);
+  const [isMockData, setIsMockData] = useState(false);
 
   useEffect(() => {
     // Process real analytics data if available, otherwise use mock data
@@ -34,6 +35,7 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
       
       if (analyticsData?.rawData && analyticsData.rawData.length > 0) {
         console.log('Using real analytics data for chart');
+        setIsMockData(false);
         
         // Group data by date
         const dateGroups: Record<string, number> = {};
@@ -67,8 +69,10 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
           });
       } else {
         console.log('Using mock data for chart');
-        // Fallback to mock data when no real data is available
-        newData = generateMockData();
+        setIsMockData(true);
+        
+        // Get stable mock data (will be the same between page refreshes)
+        newData = generateStableMockData();
       }
       
       setData(newData);
@@ -93,18 +97,29 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
     }
   }, [loading, data]);
 
-  // Generate mock data when real data is not available
-  const generateMockData = () => {
+  // Generate stable mock data (same data each time)
+  const generateStableMockData = () => {
+    // Use the month names for the last few months
+    const currentDate = new Date();
+    const months = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const d = new Date();
+      d.setMonth(currentDate.getMonth() - i);
+      months.unshift(d.toLocaleString('default', { month: 'short' }));
+    }
+    
+    // Create deterministic data
     const data: ChartData[] = [];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
-    const baseVisitors = analyticsData?.pageViews ? Math.max(analyticsData.pageViews / 10, 10) : 100;
+    const baseVisitors = 50;
     
     for (let i = 1; i <= 10; i++) {
-      const month = months[Math.floor(Math.random() * months.length)];
-      let visitors = Math.floor(baseVisitors + Math.random() * baseVisitors * 0.5);
+      const monthIndex = i % 5;
+      // Use a deterministic formula instead of random
+      const visitors = baseVisitors + (i * 7) % 40;
       
       data.push({
-        date: `${i} ${month}`,
+        date: `${i} ${months[monthIndex]}`,
         visitors,
       });
     }
@@ -136,6 +151,12 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
 
   return (
     <div className="chart-container animate-fade-in h-[300px]">
+      {isMockData && (
+        <div className="text-xs text-gray-500 mb-2 flex items-center">
+          <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>
+          Demo data - Add tracking script to your website to see real data
+        </div>
+      )}
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={animatedData.length > 0 ? animatedData : data}

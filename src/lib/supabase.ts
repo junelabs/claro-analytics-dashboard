@@ -32,6 +32,9 @@ function createMockClient() {
   } as any;
 }
 
+// Store mock data in localStorage to ensure it persists between refreshes
+const MOCK_DATA_KEY = 'claro_mock_analytics_data';
+
 // Analytics tracking functions
 export const trackPageView = async (data: {
   siteId: string;
@@ -46,6 +49,24 @@ export const trackPageView = async (data: {
   try {
     console.log('Tracking page view:', data);
     
+    if (isMissingCredentials) {
+      // If in development, store the page view in localStorage mock data
+      const mockData = getMockData();
+      mockData.push({
+        id: `mock-${mockData.length + 1}`,
+        site_id: data.siteId,
+        url: data.url,
+        referrer: data.referrer,
+        user_agent: data.userAgent,
+        screen_width: data.screenWidth,
+        screen_height: data.screenHeight,
+        timestamp: data.timestamp || new Date().toISOString(),
+        created_at: data.timestamp || new Date().toISOString()
+      });
+      localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(mockData));
+      return { success: true };
+    }
+    
     const { error } = await supabase
       .from('page_views')
       .insert([{
@@ -56,8 +77,6 @@ export const trackPageView = async (data: {
         screen_width: data.screenWidth,
         screen_height: data.screenHeight,
         page_title: data.pageTitle || '',
-        // The created_at will be handled by Supabase's now() default
-        // The timestamp field matches what we have in the schema
         timestamp: data.timestamp || new Date().toISOString()
       }]);
     
@@ -82,7 +101,8 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
     
     // Use the mock data in development
     if (isMissingCredentials) {
-      const mockData = generateMockData(period);
+      console.log('Using persistent mock data from localStorage');
+      const mockData = getMockData();
       
       // Create topPages from mockData correctly
       const urlCounts: Record<string, number> = {};
@@ -96,6 +116,9 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
         .sort((a, b) => b.views - a.views)
         .slice(0, 5);
       
+      // Set a consistent current visitor count (no longer random)
+      const currentVisitors = Math.min(3, mockData.length > 0 ? Math.ceil(mockData.length / 3) : 1);
+      
       return { 
         success: true, 
         data: {
@@ -103,7 +126,8 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
           uniqueVisitors: new Set(mockData.map(item => item.user_agent)).size,
           topPages,
           period,
-          rawData: mockData
+          rawData: mockData,
+          currentVisitors
         } 
       };
     }
@@ -145,7 +169,8 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
         uniqueVisitors: uniqueUserAgents,
         topPages,
         period,
-        rawData: pageViewData
+        rawData: pageViewData,
+        currentVisitors: uniqueUserAgents > 0 ? Math.min(5, Math.ceil(uniqueUserAgents / 2)) : 0
       } 
     };
   } catch (error) {
@@ -154,36 +179,50 @@ export const getAnalyticsSummary = async (siteId: string, period: string = '30d'
   }
 };
 
-// Generate mock data for development
-function generateMockData(period: string) {
-  const periodDays = parseInt(period.replace('d', '')) || 30;
-  const count = 10 + Math.floor(Math.random() * 50); // Random number of entries
+// Get mock data from localStorage or generate if not exists
+function getMockData() {
+  try {
+    const storedData = localStorage.getItem(MOCK_DATA_KEY);
+    if (storedData) {
+      return JSON.parse(storedData);
+    }
+  } catch (e) {
+    console.error('Error parsing stored mock data:', e);
+  }
+  
+  // Generate initial mock data if none exists
+  const initialData = generateInitialMockData();
+  localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(initialData));
+  return initialData;
+}
+
+// Generate initial mock data for first time use
+function generateInitialMockData() {
+  const count = 5; // Start with a small fixed number of entries
   const mockData = [];
   
-  const paths = ['/home', '/about', '/pricing', '/blog', '/contact', '/products'];
-  const referrers = ['https://google.com', 'https://twitter.com', 'https://facebook.com', 'direct', ''];
+  const paths = ['/home', '/about', '/pricing', '/blog', '/contact'];
+  const referrers = ['https://google.com', 'https://twitter.com', 'direct', ''];
   const userAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
   ];
   
-  // Generate entries for the last X days
+  // Generate entries for the last 30 days with consistent dates
   for (let i = 0; i < count; i++) {
-    const daysAgo = Math.floor(Math.random() * periodDays);
-    const hoursAgo = Math.floor(Math.random() * 24);
+    const daysAgo = Math.floor(i * 3) % 30; // Spread them out over 30 days
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
-    date.setHours(date.getHours() - hoursAgo);
     
     mockData.push({
       id: `mock-${i}`,
       site_id: 'demo-site',
-      url: paths[Math.floor(Math.random() * paths.length)],
-      referrer: referrers[Math.floor(Math.random() * referrers.length)],
-      user_agent: userAgents[Math.floor(Math.random() * userAgents.length)],
-      screen_width: [1920, 1440, 1366, 375, 414][Math.floor(Math.random() * 5)],
-      screen_height: [1080, 900, 768, 812, 896][Math.floor(Math.random() * 5)],
+      url: paths[i % paths.length],
+      referrer: referrers[i % referrers.length],
+      user_agent: userAgents[i % userAgents.length],
+      screen_width: [1920, 1440, 1366, 375, 414][i % 5],
+      screen_height: [1080, 900, 768, 812, 896][i % 5],
       timestamp: date.toISOString(),
       created_at: date.toISOString()
     });
