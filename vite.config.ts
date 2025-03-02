@@ -11,13 +11,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/tracker.js': {
-        target: 'http://localhost:8080',
-        bypass: (req) => {
-          // This is just to indicate we want to handle this internally
-          return null; // Using null instead of true as per Vite's typing requirements
-        }
-      } as ProxyOptions
+      '/tracker.js': 'http://localhost:8080',
+      '/api/track': 'http://localhost:8080'
     }
   },
   plugins: [

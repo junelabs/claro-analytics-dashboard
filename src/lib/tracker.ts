@@ -5,7 +5,7 @@
 export const trackerScript = `
 (function() {
   const TRACKING_ENDPOINT = "{{TRACKING_ENDPOINT}}";
-  const SITE_ID = document.currentScript.getAttribute('data-site-id');
+  const SITE_ID = document.currentScript.getAttribute('data-site-id') || '';
   
   // More visible debug logging
   const debug = {
@@ -20,20 +20,20 @@ export const trackerScript = `
     }
   };
 
-  // Initialization check
-  debug.log('Script initializing...');
+  // Script initialization
+  debug.log('Script initializing from ' + TRACKING_ENDPOINT);
+  debug.log('Site ID: ' + (SITE_ID || 'Not provided'));
   
   if (!SITE_ID) {
-    debug.error('No site ID provided. Add data-site-id attribute to your script tag.');
-    return;
+    debug.warn('No site ID provided. Add data-site-id attribute to your script tag. Tracking will continue but data may not be associated correctly.');
   }
 
   // Track page view
   function trackPageView() {
-    debug.log('Tracking page view for site ID', SITE_ID);
+    debug.log('Tracking page view for site ID', SITE_ID || 'unknown');
     
     const data = {
-      siteId: SITE_ID,
+      siteId: SITE_ID || 'unknown',
       url: window.location.href,
       referrer: document.referrer || '',
       userAgent: navigator.userAgent,
@@ -85,7 +85,19 @@ export const trackerScript = `
         return response.text();
       })
       .then(text => debug.log('Response:', text))
-      .catch(err => debug.error('Fetch error', err));
+      .catch(err => {
+        debug.error('Fetch error', err);
+        // Try one more time with a simple image pixel as last resort
+        try {
+          const img = new Image();
+          const params = new URLSearchParams();
+          params.append('data', JSON.stringify(data));
+          img.src = endpoint + '?' + params.toString();
+          debug.log('Attempting image pixel fallback');
+        } catch (e) {
+          debug.error('All tracking methods failed', e);
+        }
+      });
     }
   }
 
@@ -95,40 +107,63 @@ export const trackerScript = `
       debug.error('Script error:', event.message);
     }
   });
-
-  // Track initial page view
-  debug.log('Script loaded from ' + TRACKING_ENDPOINT);
   
   // Use setTimeout to ensure the script runs after the page has fully loaded
   setTimeout(trackPageView, 200);
 
   // Track navigation changes for SPAs
   let lastUrl = window.location.href;
-  const observer = new MutationObserver(() => {
-    if (lastUrl !== window.location.href) {
-      lastUrl = window.location.href;
-      debug.log('URL changed, tracking new page view');
-      trackPageView();
-    }
-  });
   
   try {
+    // Use different methods to catch navigation changes
+    // 1. MutationObserver
+    const observer = new MutationObserver(() => {
+      if (lastUrl !== window.location.href) {
+        lastUrl = window.location.href;
+        debug.log('URL changed (mutation), tracking new page view');
+        trackPageView();
+      }
+    });
     observer.observe(document, { subtree: true, childList: true });
+    
+    // 2. History API
+    const originalPushState = history.pushState;
+    history.pushState = function() {
+      originalPushState.apply(this, arguments);
+      debug.log('pushState called, tracking new page view');
+      trackPageView();
+    };
+    
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function() {
+      originalReplaceState.apply(this, arguments);
+      debug.log('replaceState called, tracking new page view');
+      trackPageView();
+    };
   } catch (err) {
-    debug.error('Failed to observe DOM changes', err);
+    debug.error('Failed to setup navigation tracking', err);
   }
 
-  // Handle navigation events
+  // Handle popstate event
   window.addEventListener('popstate', function() {
     debug.log('History navigation detected');
     trackPageView();
   });
   
   // Log successful initialization
-  debug.log('Successfully initialized for site ID', SITE_ID);
+  debug.log('Successfully initialized');
 
   // Add a global function to manually track page views
   window.claroTrackPageView = trackPageView;
+  
+  // Export for debugging
+  window.claroAnalytics = {
+    trackPageView,
+    debug
+  };
+  
+  // Notify that the script loaded successfully
+  debug.log('Script loaded and executed successfully');
 })();
 `;
 

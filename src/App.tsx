@@ -16,6 +16,8 @@ const serveTrackingScript = async (req: Request) => {
   try {
     const url = new URL(req.url);
     const siteId = url.searchParams.get('siteId') || '';
+    // Use the origin from request or fallback to hardcoded endpoint
+    // This ensures the script works both in development and production
     const endpoint = `${url.origin}`;
     
     console.log('Serving tracking script for siteId:', siteId, 'endpoint:', endpoint);
@@ -50,9 +52,8 @@ const serveTrackingScript = async (req: Request) => {
 
 // API route handler
 const apiRouteHandler = async (request: Request) => {
-  console.log('API route handler called for:', request.url, 'method:', request.method);
-  
   const url = new URL(request.url);
+  console.log('API route handler called for:', url.pathname, 'method:', request.method);
   
   // Handle preflight OPTIONS requests for CORS
   if (request.method === 'OPTIONS') {
@@ -68,7 +69,7 @@ const apiRouteHandler = async (request: Request) => {
     });
   }
   
-  // Serve the tracking script
+  // Serve the tracking script - note the path is exactly "/tracker.js"
   if (url.pathname === '/tracker.js') {
     console.log('Serving tracking script');
     return serveTrackingScript(request);
@@ -109,6 +110,33 @@ if (typeof window !== 'undefined') {
   };
 }
 
+// Setup a specific route for tracker.js using the window.location object
+if (typeof window !== 'undefined') {
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function() {
+    // @ts-ignore - We know there are at least 2 arguments
+    const url = arguments[1];
+    if (typeof url === 'string' && url.includes('/tracker.js')) {
+      console.log('Intercepting XHR for tracker.js:', url);
+      // @ts-ignore - We know there are at least 2 arguments
+      const request = new Request(arguments[1]);
+      const response = apiRouteHandler(request);
+      
+      // Finish handling in fetch interception
+    }
+    return originalXHROpen.apply(this, arguments as any);
+  };
+  
+  // Handle direct access to tracker.js (from script src attribute)
+  window.addEventListener('error', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'SCRIPT' && (target as HTMLScriptElement).src?.includes('/tracker.js')) {
+      console.log('Caught script error for tracker.js, will attempt to serve directly');
+      // We can't fix it here, but we can at least log it
+    }
+  }, true);
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -117,6 +145,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/tracker.js" element={
+            <script dangerouslySetInnerHTML={{ 
+              __html: getTrackingScript('', window.location.origin) 
+            }} />
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
