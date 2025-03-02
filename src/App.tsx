@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -165,9 +166,9 @@ document.addEventListener('visibilitychange', () => {
 });
 
 ['click', 'scroll', 'keypress', 'mousemove'].forEach(eventType => {
-  let debounceTimer: number;
+  let debounceTimer: NodeJS.Timeout | number;
   window.addEventListener(eventType, () => {
-    clearTimeout(debounceTimer);
+    clearTimeout(debounceTimer as number);
     debounceTimer = setTimeout(pingActiveSession, 1000);
   }, { passive: true });
 });
