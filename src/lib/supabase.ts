@@ -40,8 +40,12 @@ export const trackPageView = async (data: {
   userAgent: string;
   screenWidth: number;
   screenHeight: number;
+  timestamp?: string;
+  pageTitle?: string;
 }) => {
   try {
+    console.log('Tracking page view:', data);
+    
     const { error } = await supabase
       .from('page_views')
       .insert([{
@@ -51,9 +55,10 @@ export const trackPageView = async (data: {
         user_agent: data.userAgent,
         screen_width: data.screenWidth,
         screen_height: data.screenHeight,
+        page_title: data.pageTitle || '',
         // The created_at will be handled by Supabase's now() default
         // The timestamp field matches what we have in the schema
-        timestamp: new Date().toISOString()
+        timestamp: data.timestamp || new Date().toISOString()
       }]);
     
     if (error) {
@@ -180,31 +185,80 @@ function generateMockData(period: string) {
 
 // Create an API endpoint handler for the tracking script
 export const handleTrackingRequest = async (request: Request) => {
+  // Handle preflight request
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400'
+      }
+    });
+  }
+  
   try {
-    const data = await request.json();
-    console.log('Received tracking data:', data);
+    console.log('Received tracking request');
     
+    // For debugging, log the full request
+    console.log('Request method:', request.method);
+    console.log('Request headers:', Object.fromEntries([...request.headers]));
+    
+    // Parse the request body
+    let data;
+    try {
+      data = await request.json();
+      console.log('Received tracking data:', data);
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Invalid JSON in request body' 
+      }), {
+        status: 400,
+        headers: getCorsHeaders()
+      });
+    }
+    
+    // Validate the data
+    if (!data || !data.siteId || !data.url) {
+      console.error('Invalid tracking data:', data);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Missing required fields' 
+      }), {
+        status: 400,
+        headers: getCorsHeaders()
+      });
+    }
+    
+    // Track the page view
     const result = await trackPageView(data);
+    console.log('Tracking result:', result);
     
     return new Response(JSON.stringify(result), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      },
-      status: result.success ? 200 : 500
+      status: result.success ? 200 : 500,
+      headers: getCorsHeaders()
     });
   } catch (error) {
     console.error('Error handling tracking request:', error);
-    return new Response(JSON.stringify({ success: false, error: 'Invalid request data' }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      },
-      status: 400
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: 'Server error processing request' 
+    }), {
+      status: 500,
+      headers: getCorsHeaders()
     });
   }
 };
+
+// Helper function to get CORS headers
+function getCorsHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  };
+}

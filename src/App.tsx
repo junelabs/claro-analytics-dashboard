@@ -18,6 +18,8 @@ const serveTrackingScript = async (req: Request) => {
     const siteId = url.searchParams.get('siteId') || '';
     const endpoint = `${url.origin}`;
     
+    console.log('Serving tracking script for siteId:', siteId, 'endpoint:', endpoint);
+    
     // Generate tracking script with proper endpoint
     const script = getTrackingScript(siteId, endpoint);
     
@@ -25,15 +27,18 @@ const serveTrackingScript = async (req: Request) => {
     return new Response(script, {
       headers: {
         'Content-Type': 'application/javascript',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',  // Disable caching for debugging
+        'Pragma': 'no-cache',
+        'Expires': '0',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400'
       },
     });
   } catch (error) {
     console.error('Error serving tracking script:', error);
-    return new Response('console.error("Error loading tracking script");', {
+    return new Response('console.error("Error loading Claro Analytics tracking script");', {
       headers: {
         'Content-Type': 'application/javascript',
         'Access-Control-Allow-Origin': '*'
@@ -45,15 +50,19 @@ const serveTrackingScript = async (req: Request) => {
 
 // API route handler
 const apiRouteHandler = async (request: Request) => {
+  console.log('API route handler called for:', request.url, 'method:', request.method);
+  
   const url = new URL(request.url);
   
   // Handle preflight OPTIONS requests for CORS
   if (request.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request for:', url.pathname);
     return new Response(null, {
+      status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400'
       }
     });
@@ -61,30 +70,23 @@ const apiRouteHandler = async (request: Request) => {
   
   // Serve the tracking script
   if (url.pathname === '/tracker.js') {
+    console.log('Serving tracking script');
     return serveTrackingScript(request);
   }
   
   // Handle tracking endpoint
-  if (url.pathname === '/api/track' && request.method === 'POST') {
-    // Add CORS headers to the tracking response
-    const response = await handleTrackingRequest(request);
-    const responseHeaders = new Headers(response.headers);
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
-    responseHeaders.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type');
-    
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: responseHeaders
-    });
+  if (url.pathname === '/api/track') {
+    console.log('Handling tracking request');
+    return handleTrackingRequest(request);
   }
   
   // Return a 404 for any other API routes
+  console.log('Unknown API route:', url.pathname);
   return new Response('Not found', { 
     status: 404,
     headers: {
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'text/plain'
     }
   });
 };
@@ -99,6 +101,7 @@ if (typeof window !== 'undefined') {
   const originalFetch = window.fetch;
   window.fetch = async (input, init) => {
     if (typeof input === 'string' && isApiRequest(input)) {
+      console.log('Intercepting API request:', input);
       const request = new Request(input, init);
       return apiRouteHandler(request);
     }
