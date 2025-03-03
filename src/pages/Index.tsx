@@ -235,21 +235,21 @@ const Index = () => {
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
           
-          {/* Updated layout: 2 columns with 2 tables/rows in each column, all with consistent height */}
+          {/* Updated layout: 2 tables per row with consistent heights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {/* First column */}
+            {/* First row - 2 tables */}
+            <AbandonmentAnalytics loading={loading} />
+            <LocationAnalytics loading={loading} />
+            
+            {/* Second row - 2 tables */}
+            <PageTimeAnalytics loading={loading} />
             <div className="grid grid-cols-1 gap-6">
-              <AbandonmentAnalytics loading={loading} />
-              <PageTimeAnalytics loading={loading} />
+              <RevenueSources loading={loading} />
             </div>
             
-            {/* Second column */}
-            <div className="grid grid-cols-1 gap-6">
-              <LocationAnalytics loading={loading} />
-              <div className="grid grid-cols-2 gap-6">
-                <RevenueSources loading={loading} />
-                <RevenueTrends loading={loading} />
-              </div>
+            {/* Third row - 1 table taking full width */}
+            <div className="md:col-span-2">
+              <RevenueTrends loading={loading} />
             </div>
           </div>
         </div>
