@@ -14,6 +14,9 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { AbandonmentAnalytics } from '@/components/AbandonmentAnalytics';
+import { PageTimeAnalytics } from '@/components/PageTimeAnalytics';
+import { LocationAnalytics } from '@/components/LocationAnalytics';
 
 const Index = () => {
   const { signOut, user } = useAuth();
@@ -228,6 +231,12 @@ const Index = () => {
           </div>
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <AbandonmentAnalytics loading={loading} />
+            <PageTimeAnalytics loading={loading} />
+            <LocationAnalytics loading={loading} />
+          </div>
         </div>
       </div>
     </Layout>
