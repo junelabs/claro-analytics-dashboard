@@ -1,13 +1,22 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import About from "./pages/About";
+import FAQs from "./pages/FAQs";
+import Pricing from "./pages/Pricing";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
+import ResetPassword from "./pages/auth/ResetPassword";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { handleTrackingRequest } from "./lib/supabase";
 import { getTrackingScript } from "./lib/tracker";
+import { useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -280,23 +289,47 @@ if (!isDashboardUrl(window.location.href)) {
   });
 }
 
+const Root = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+  
+  // If user is logged in, show the dashboard, otherwise go to landing page
+  return user ? <Index /> : <Navigate to="/landing" replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/tracker.js" element={
-            <script dangerouslySetInnerHTML={{ 
-              __html: getTrackingScript('', window.location.origin) 
-            }} />
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Root />} />
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/faqs" element={<FAQs />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/tracker.js" element={
+              <script dangerouslySetInnerHTML={{ 
+                __html: getTrackingScript('', window.location.origin) 
+              }} />
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

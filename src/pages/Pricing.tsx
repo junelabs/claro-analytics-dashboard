@@ -1,0 +1,134 @@
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Header } from '@/components/Header';
+import { Check } from 'lucide-react';
+
+const Pricing = () => {
+  const plans = [
+    {
+      name: "Starter",
+      price: "$0",
+      description: "For small websites and personal projects",
+      features: [
+        "Up to 5,000 page views per month",
+        "Basic analytics dashboard",
+        "1 website",
+        "7-day data retention",
+        "Email support"
+      ],
+      cta: "Start for free",
+      highlighted: false
+    },
+    {
+      name: "Pro",
+      price: "$29",
+      description: "For growing businesses and online stores",
+      features: [
+        "Up to 100,000 page views per month",
+        "Advanced analytics dashboard",
+        "5 websites",
+        "30-day data retention",
+        "Priority email support",
+        "Custom events tracking",
+        "AI-powered insights"
+      ],
+      cta: "Start 14-day trial",
+      highlighted: true
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      description: "For large ecommerce operations",
+      features: [
+        "Unlimited page views",
+        "Full analytics suite",
+        "Unlimited websites",
+        "12-month data retention",
+        "24/7 priority support",
+        "Custom events tracking",
+        "AI-powered insights",
+        "Dedicated account manager",
+        "Custom integrations"
+      ],
+      cta: "Contact sales",
+      highlighted: false
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50">
+      <div className="container mx-auto px-4 py-6">
+        <nav className="flex justify-between items-center mb-16">
+          <Link to="/">
+            <Header />
+          </Link>
+          <div className="flex space-x-8 items-center">
+            <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+            <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
+            <Link to="/pricing" className="text-indigo-600 font-medium">Pricing</Link>
+            <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
+            <Link to="/auth/signup">
+              <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="max-w-5xl mx-auto mt-12">
+          <h1 className="text-4xl font-bold mb-4 text-center">Simple, transparent pricing</h1>
+          <p className="text-lg text-gray-700 mb-12 text-center">
+            Choose the plan that's right for your business
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {plans.map((plan, index) => (
+              <div 
+                key={index} 
+                className={`
+                  rounded-lg p-8 
+                  ${plan.highlighted 
+                    ? 'bg-indigo-50 border-2 border-indigo-500 shadow-lg' 
+                    : 'bg-white border border-gray-200'
+                  }
+                `}
+              >
+                <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                  {plan.price !== "Custom" && <span className="text-gray-500">/month</span>}
+                </div>
+                <p className="text-gray-600 mb-6">{plan.description}</p>
+                
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  className={`w-full ${plan.highlighted ? 'bg-indigo-600 hover:bg-indigo-700' : ''}`}
+                  variant={plan.highlighted ? 'default' : 'outline'}
+                >
+                  {plan.cta}
+                </Button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mb-8">
+            <p className="text-gray-700 mb-2">Need a custom solution?</p>
+            <Button variant="link" className="text-indigo-600">
+              Contact our sales team
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Pricing;
