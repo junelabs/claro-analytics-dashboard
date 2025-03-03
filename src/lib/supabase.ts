@@ -34,6 +34,82 @@ function createMockClient() {
 // Store mock data in localStorage to ensure it persists between refreshes
 const MOCK_DATA_KEY = 'claro_mock_analytics_data';
 
+// Enhanced dashboard detection
+function isDashboardUrl(url: string): boolean {
+  if (!url) return false;
+  
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    const path = urlObj.pathname.toLowerCase();
+    
+    // Check hosts that are definitely dashboards
+    if (hostname.includes('localhost') || 
+        hostname.includes('127.0.0.1') ||
+        hostname.includes('lovable.app') ||
+        hostname.includes('lovable.dev') ||
+        hostname.includes('lovableproject.com')) {
+      console.log('Dashboard detected via hostname:', hostname);
+      return true;
+    }
+    
+    // Check paths that indicate dashboard
+    if (path === '/' || 
+        path.includes('/dashboard') || 
+        path.includes('/analytics')) {
+      console.log('Dashboard detected via path:', path);
+      return true;
+    }
+    
+    // Check for specific query parameters
+    if (urlObj.searchParams.has('analytics') || 
+        urlObj.searchParams.has('dashboard') ||
+        url.includes('claro-analytics')) {
+      return true;
+    }
+    
+    return false;
+  } catch (e) {
+    // If URL parsing fails, fall back to simple string matching
+    return url.includes('localhost') ||
+           url.includes('lovable') ||
+           url.includes('/dashboard') ||
+           url.includes('/analytics');
+  }
+}
+
+// Check for duplicate tracking
+function isDuplicate(data: any): boolean {
+  // If this is an explicit ping, never consider it a duplicate
+  if (data.isPing || data.eventType === 'session_ping') {
+    return false;
+  }
+  
+  // Don't check for duplicates in development mode
+  if (isMissingCredentials) {
+    return false;
+  }
+  
+  // Check the last few records to see if this is a duplicate
+  const mockData = getMockData();
+  const lastFewRecords = mockData.slice(-5);
+  
+  // Look for matching URL and timestamps within 60 seconds
+  const now = new Date(data.timestamp || new Date().toISOString());
+  const duplicates = lastFewRecords.filter(record => {
+    const recordTime = new Date(record.timestamp || record.created_at);
+    const timeDiff = Math.abs(now.getTime() - recordTime.getTime());
+    
+    // If URL matches and time difference is less than 60 seconds
+    const sameUrl = record.url === data.url;
+    const withinTimeWindow = timeDiff < 60000; // 60 seconds
+    
+    return sameUrl && withinTimeWindow;
+  });
+  
+  return duplicates.length > 0;
+}
+
 // Analytics tracking functions
 export const trackPageView = async (data: {
   siteId: string;
@@ -45,18 +121,24 @@ export const trackPageView = async (data: {
   timestamp?: string;
   pageTitle?: string;
   isPing?: boolean;
+  eventType?: string;
 }) => {
   try {
-    console.log('Tracking page view:', data);
+    console.log('Tracking request received:', data);
     
-    // More robust check to prevent tracking the analytics dashboard itself
-    const isDashboard = checkIfDashboard(data.url);
-    
-    // Skip tracking if this is the analytics dashboard itself (unless it's a ping)
-    if (isDashboard && !data.isPing) {
-      console.log('Skipping tracking for analytics dashboard itself');
-      return { success: true };
+    // Skip if this is a dashboard URL
+    if (isDashboardUrl(data.url)) {
+      console.log('Skipping tracking for analytics dashboard URL:', data.url);
+      return { success: true, skipped: 'dashboard' };
     }
+    
+    // Skip if this is a duplicate within the time window
+    if (isDuplicate(data)) {
+      console.log('Skipping duplicate tracking request for URL:', data.url);
+      return { success: true, skipped: 'duplicate' };
+    }
+    
+    console.log('Processing tracking for:', data.url, 'Event type:', data.eventType || 'page_view');
     
     if (isMissingCredentials) {
       // If in development, store the page view in localStorage mock data
@@ -70,7 +152,8 @@ export const trackPageView = async (data: {
         screen_width: data.screenWidth,
         screen_height: data.screenHeight,
         timestamp: data.timestamp || new Date().toISOString(),
-        created_at: data.timestamp || new Date().toISOString()
+        created_at: data.timestamp || new Date().toISOString(),
+        event_type: data.eventType || 'page_view'
       });
       localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(mockData));
       return { success: true };
@@ -86,7 +169,8 @@ export const trackPageView = async (data: {
         screen_width: data.screenWidth,
         screen_height: data.screenHeight,
         page_title: data.pageTitle || '',
-        timestamp: data.timestamp || new Date().toISOString()
+        timestamp: data.timestamp || new Date().toISOString(),
+        event_type: data.eventType || 'page_view'
       }]);
     
     if (error) {
@@ -99,22 +183,6 @@ export const trackPageView = async (data: {
     return { success: false, error };
   }
 };
-
-// Helper function to check if a URL is the dashboard
-function checkIfDashboard(url: string): boolean {
-  // More comprehensive check for dashboard URLs
-  if (!url) return false;
-  
-  const dashboardPatterns = [
-    'lovable.app',
-    'lovable.dev',
-    'localhost',
-    '/dashboard',
-    '/analytics'
-  ];
-  
-  return dashboardPatterns.some(pattern => url.includes(pattern));
-}
 
 // Get active visitor count in real-time (not an estimate)
 export const getActiveVisitorCount = async (siteId: string) => {
@@ -296,7 +364,8 @@ function generateInitialMockData() {
       screen_width: [1920, 1440, 1366, 375, 414][i % 5],
       screen_height: [1080, 900, 768, 812, 896][i % 5],
       timestamp: date.toISOString(),
-      created_at: date.toISOString()
+      created_at: date.toISOString(),
+      event_type: 'page_view'
     });
   }
   
@@ -321,9 +390,8 @@ export const handleTrackingRequest = async (request: Request) => {
   try {
     console.log('Received tracking request');
     
-    // For debugging, log the full request
+    // For debugging, log the headers
     console.log('Request method:', request.method);
-    console.log('Request headers:', Object.fromEntries([...request.headers]));
     
     // Parse the request body
     let data;
@@ -349,6 +417,18 @@ export const handleTrackingRequest = async (request: Request) => {
         error: 'Missing required fields' 
       }), {
         status: 400,
+        headers: getCorsHeaders()
+      });
+    }
+    
+    // Check if URL is a dashboard before tracking
+    if (isDashboardUrl(data.url)) {
+      console.log('Skipping tracking for dashboard URL:', data.url);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        skipped: 'dashboard'
+      }), {
+        status: 200,
         headers: getCorsHeaders()
       });
     }

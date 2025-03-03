@@ -23,49 +23,87 @@ export const trackerScript = `
   // Script initialization
   debug.log('Script initializing from ' + TRACKING_ENDPOINT);
   debug.log('Site ID: ' + (SITE_ID || 'Not provided'));
-  
+
+  // Cache tracking status to prevent multiple loads
+  const TRACKER_CACHE_KEY = 'claro_last_track_' + window.location.href;
+  const TRACK_INTERVAL = 60000; // 60 seconds
+
   if (!SITE_ID) {
     debug.warn('No site ID provided. Add data-site-id attribute to your script tag. Tracking will continue but data may not be associated correctly.');
   }
 
-  // Check if this is the analytics dashboard to avoid self-tracking
-  // More comprehensive check to detect the analytics dashboard
-  const isDashboardUrl = () => {
-    const url = window.location.href;
-    const host = window.location.host;
+  // Comprehensive check to detect if current page is an analytics dashboard
+  const isDashboard = function() {
+    // Get current URL and host
+    const url = window.location.href.toLowerCase();
+    const hostname = window.location.hostname.toLowerCase();
+    const path = window.location.pathname.toLowerCase();
     
-    // Check for typical analytics dashboard patterns
-    if (host.includes('lovable')) {
+    // Check for localhost which is likely development environment
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+      debug.log('Localhost detected, likely a development environment');
       return true;
     }
     
-    // Check for specific dashboard patterns
-    if (url.includes('/dashboard') || 
-        url.includes('/analytics') || 
-        url.includes('claro-analytics') ||
-        (window.location.pathname === '/' && host.includes('lovable'))) {
+    // Check for Lovable domains which host the analytics dashboard
+    if (hostname.includes('lovable.app') || 
+        hostname.includes('lovable.dev') || 
+        hostname.includes('lovableproject.com')) {
+      debug.log('Lovable domain detected, likely the analytics dashboard');
+      return true;
+    }
+    
+    // Check URL path for analytics-specific patterns
+    if (path === '/' || 
+        path.includes('/dashboard') || 
+        path.includes('/analytics') || 
+        url.includes('claro-analytics')) {
+      debug.log('Analytics URL pattern detected');
+      return true;
+    }
+    
+    // Check for query parameters that might indicate dashboard
+    if (url.includes('analytics=') || url.includes('dashboard=')) {
+      debug.log('Analytics query parameter detected');
       return true;
     }
     
     return false;
   };
   
-  const isAnalyticsDashboard = isDashboardUrl();
-  
-  if (isAnalyticsDashboard) {
-    debug.log('Analytics dashboard detected - not tracking to avoid inflating metrics');
-    return; // Exit early without tracking
-  }
+  // Check for duplicate tracking
+  const shouldTrackPageView = function() {
+    // Skip if this is a dashboard
+    if (isDashboard()) {
+      debug.log('Analytics dashboard detected - not tracking');
+      return false;
+    }
+    
+    // Check last track time for current URL
+    const lastTrack = localStorage.getItem(TRACKER_CACHE_KEY);
+    const now = Date.now();
+    
+    if (lastTrack) {
+      const timeSinceLastTrack = now - parseInt(lastTrack, 10);
+      if (timeSinceLastTrack < TRACK_INTERVAL) {
+        debug.log('Page view already tracked ' + Math.round(timeSinceLastTrack/1000) + ' seconds ago, skipping duplicate');
+        return false;
+      }
+    }
+    
+    // Update last track time
+    localStorage.setItem(TRACKER_CACHE_KEY, now.toString());
+    return true;
+  };
 
   // Track page view
   function trackPageView() {
-    debug.log('Tracking page view for site ID', SITE_ID || 'unknown');
-    
-    // Double-check we're not tracking the dashboard itself
-    if (isDashboardUrl()) {
-      debug.log('Analytics dashboard detected during tracking - aborting');
+    // Check if we should track this page view
+    if (!shouldTrackPageView()) {
       return;
     }
+    
+    debug.log('Tracking page view for site ID', SITE_ID || 'unknown');
     
     const data = {
       siteId: SITE_ID || 'unknown',
@@ -75,11 +113,12 @@ export const trackerScript = `
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
       timestamp: new Date().toISOString(),
-      pageTitle: document.title || ''
+      pageTitle: document.title || '',
+      eventType: 'page_view'
     };
 
     const endpoint = TRACKING_ENDPOINT + '/api/track';
-    debug.log('Preparing to send data to', endpoint, data);
+    debug.log('Sending data to', endpoint);
 
     // Use sendBeacon if available, fall back to fetch
     if (navigator.sendBeacon) {
@@ -101,7 +140,7 @@ export const trackerScript = `
     }
     
     function sendWithFetch() {
-      debug.log('Sending data via fetch to', endpoint);
+      debug.log('Sending data via fetch');
       fetch(endpoint, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -142,6 +181,12 @@ export const trackerScript = `
       debug.error('Script error:', event.message);
     }
   });
+  
+  // Don't track if dashboard is detected
+  if (isDashboard()) {
+    debug.log('Analytics dashboard detected - not initializing tracking');
+    return;
+  }
   
   // Use setTimeout to ensure the script runs after the page has fully loaded
   setTimeout(trackPageView, 200);
@@ -196,9 +241,6 @@ export const trackerScript = `
     trackPageView,
     debug
   };
-  
-  // Notify that the script loaded successfully
-  debug.log('Script loaded and executed successfully');
 })();
 `;
 
