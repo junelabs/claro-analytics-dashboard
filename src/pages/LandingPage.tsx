@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, LogOut } from 'lucide-react';
@@ -8,10 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 
 const LandingPage = () => {
   const { user, signOut } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     // Log authentication state for debugging
     console.log("Current auth state:", { user, isLoggedIn: !!user });
+    setIsAuthenticated(!!user);
   }, [user]);
 
   const handleLogout = async () => {
@@ -39,15 +41,20 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="flex space-x-4 items-center">
-            {user ? (
-              <Button 
-                onClick={handleLogout} 
-                variant="outline" 
-                className="flex items-center"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
+            {isAuthenticated ? (
+              <>
+                <span className="text-gray-600 mr-2">
+                  {user?.email}
+                </span>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="outline" 
+                  className="flex items-center"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </>
             ) : (
               <>
                 <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
