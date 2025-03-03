@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
-import { Google } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -164,7 +164,7 @@ const Signup = () => {
                 onClick={handleGoogleSignup}
                 disabled={loading}
               >
-                <Google className="mr-2 h-4 w-4" />
+                <LogIn className="mr-2 h-4 w-4" />
                 Google
               </Button>
             </CardContent>
