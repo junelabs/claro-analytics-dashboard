@@ -13,10 +13,14 @@ const LandingPage = () => {
           <div className="flex items-center">
             <Header />
           </div>
-          <div className="flex space-x-8 items-center">
-            <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
-            <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
-            <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
+          <div className="flex items-center justify-center flex-grow mx-8">
+            <div className="flex space-x-12">
+              <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+              <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
+              <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
+            </div>
+          </div>
+          <div className="flex space-x-4 items-center">
             <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
             <Link to="/auth/signup">
               <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
@@ -28,9 +32,6 @@ const LandingPage = () => {
           <h1 className="text-5xl font-bold tracking-tight mb-8">
             Simplifying analytics and data for <span className="text-indigo-500">ecommerce businesses</span>.
           </h1>
-          <p className="text-xl text-gray-700 mb-12">
-            Claro is an easy to use alternative to Google analytics, helping you make more informed marketing decisions.
-          </p>
           <Link to="/auth/signup">
             <Button className="bg-indigo-500 hover:bg-indigo-600 px-8 py-6 text-lg">
               Join the waitlist <ArrowRight className="ml-2" />
@@ -38,26 +39,11 @@ const LandingPage = () => {
           </Link>
         </div>
 
-        <div className="flex justify-between items-center mb-8 mt-24">
-          <div className="flex flex-col max-w-xs">
-            <p className="text-indigo-700 font-medium text-lg">
-              Simple, intuitive, and designed for ecommerce
-            </p>
-            <div className="mt-2">
-              <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 5 Q 40 40 75 5" stroke="#6366f1" strokeWidth="2" fill="none" />
-              </svg>
-            </div>
-          </div>
-          <div className="flex flex-col max-w-xs">
-            <div className="mb-2 ml-auto">
-              <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 35 Q 40 0 75 35" stroke="#6366f1" strokeWidth="2" fill="none" />
-              </svg>
-            </div>
-            <p className="text-indigo-700 font-medium text-lg ml-auto">
-              No coding required, start analyzing immediately
-            </p>
+        {/* Loved by teams section */}
+        <div className="max-w-4xl mx-auto text-center mt-24 mb-20">
+          <h2 className="text-xl font-medium text-gray-600 mb-10">Loved by teams at</h2>
+          <div className="flex justify-between items-center">
+            <img src="/lovable-uploads/341bf82f-998c-4367-b5fe-4bc338377d52.png" alt="Partner companies" className="w-full" />
           </div>
         </div>
 
