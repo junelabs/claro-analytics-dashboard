@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { AbandonmentAnalytics } from '@/components/AbandonmentAnalytics';
 import { PageTimeAnalytics } from '@/components/PageTimeAnalytics';
 import { LocationAnalytics } from '@/components/LocationAnalytics';
+import { RevenueSources } from '@/components/RevenueSources';
+import { RevenueTrends } from '@/components/RevenueTrends';
 
 const Index = () => {
   const { signOut, user } = useAuth();
@@ -233,13 +235,18 @@ const Index = () => {
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
           
+          {/* Updated layout for analytics cards - 2x2 grid with consistent heights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
               <AbandonmentAnalytics loading={loading} />
               <PageTimeAnalytics loading={loading} />
             </div>
-            <div>
+            <div className="grid grid-cols-1 gap-6">
               <LocationAnalytics loading={loading} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <RevenueSources loading={loading} />
+                <RevenueTrends loading={loading} />
+              </div>
             </div>
           </div>
         </div>

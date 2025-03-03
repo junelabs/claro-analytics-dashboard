@@ -36,7 +36,7 @@ export const PageTimeAnalytics = ({ data = [], loading = false }: PageTimeAnalyt
   const maxTime = Math.max(...displayData.map(item => item.timeSpent));
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm h-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">Time Spent on Pages</CardTitle>

@@ -135,7 +135,7 @@ export const LocationAnalytics = ({ data = [], loading = false }: LocationAnalyt
   };
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm h-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">Visitor Locations</CardTitle>
