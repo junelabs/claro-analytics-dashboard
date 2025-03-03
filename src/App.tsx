@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -122,6 +121,8 @@ if (typeof window !== 'undefined') {
 
 const pingInterval = 60000;
 let lastPingTime = 0;
+let lastPageViewUrl = '';
+let lastPageViewTime = 0;
 
 const pingActiveSession = async () => {
   const siteId = localStorage.getItem('claro_site_id');
@@ -140,7 +141,8 @@ const pingActiveSession = async () => {
       screenHeight: window.innerHeight,
       pageTitle: document.title,
       timestamp: new Date().toISOString(),
-      isPing: true  // Flag to identify this as a ping, not a page view
+      isPing: true,
+      eventType: 'session_ping'
     };
     
     await fetch('/api/track', {
@@ -154,6 +156,20 @@ const pingActiveSession = async () => {
   } catch (error) {
     console.error('Error pinging active session:', error);
   }
+};
+
+const shouldTrackPageView = () => {
+  const currentUrl = window.location.href;
+  const now = Date.now();
+  
+  if (currentUrl === lastPageViewUrl && now - lastPageViewTime < 60000) {
+    console.log('Skipping duplicate page view tracking within 60s window');
+    return false;
+  }
+  
+  lastPageViewUrl = currentUrl;
+  lastPageViewTime = now;
+  return true;
 };
 
 pingActiveSession();

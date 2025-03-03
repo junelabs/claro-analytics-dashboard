@@ -49,13 +49,11 @@ export const trackPageView = async (data: {
   try {
     console.log('Tracking page view:', data);
     
-    // Skip tracking if this is the analytics dashboard itself (unless it's a ping)
-    const isAnalyticsDashboard = 
-      data.url.includes('lovable.app') && 
-      !data.url.includes('?') && 
-      !data.isPing;
+    // More robust check to prevent tracking the analytics dashboard itself
+    const isDashboard = checkIfDashboard(data.url);
     
-    if (isAnalyticsDashboard) {
+    // Skip tracking if this is the analytics dashboard itself (unless it's a ping)
+    if (isDashboard && !data.isPing) {
       console.log('Skipping tracking for analytics dashboard itself');
       return { success: true };
     }
@@ -101,6 +99,22 @@ export const trackPageView = async (data: {
     return { success: false, error };
   }
 };
+
+// Helper function to check if a URL is the dashboard
+function checkIfDashboard(url: string): boolean {
+  // More comprehensive check for dashboard URLs
+  if (!url) return false;
+  
+  const dashboardPatterns = [
+    'lovable.app',
+    'lovable.dev',
+    'localhost',
+    '/dashboard',
+    '/analytics'
+  ];
+  
+  return dashboardPatterns.some(pattern => url.includes(pattern));
+}
 
 // Get active visitor count in real-time (not an estimate)
 export const getActiveVisitorCount = async (siteId: string) => {

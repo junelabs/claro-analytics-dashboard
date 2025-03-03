@@ -29,8 +29,28 @@ export const trackerScript = `
   }
 
   // Check if this is the analytics dashboard to avoid self-tracking
-  const isAnalyticsDashboard = window.location.pathname === '/' && 
-    window.location.host.includes('lovable.app');
+  // More comprehensive check to detect the analytics dashboard
+  const isDashboardUrl = () => {
+    const url = window.location.href;
+    const host = window.location.host;
+    
+    // Check for typical analytics dashboard patterns
+    if (host.includes('lovable')) {
+      return true;
+    }
+    
+    // Check for specific dashboard patterns
+    if (url.includes('/dashboard') || 
+        url.includes('/analytics') || 
+        url.includes('claro-analytics') ||
+        (window.location.pathname === '/' && host.includes('lovable'))) {
+      return true;
+    }
+    
+    return false;
+  };
+  
+  const isAnalyticsDashboard = isDashboardUrl();
   
   if (isAnalyticsDashboard) {
     debug.log('Analytics dashboard detected - not tracking to avoid inflating metrics');
@@ -40,6 +60,12 @@ export const trackerScript = `
   // Track page view
   function trackPageView() {
     debug.log('Tracking page view for site ID', SITE_ID || 'unknown');
+    
+    // Double-check we're not tracking the dashboard itself
+    if (isDashboardUrl()) {
+      debug.log('Analytics dashboard detected during tracking - aborting');
+      return;
+    }
     
     const data = {
       siteId: SITE_ID || 'unknown',
