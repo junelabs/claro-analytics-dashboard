@@ -2,10 +2,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, LogOut } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { useAuth } from '@/context/AuthContext';
 
 const LandingPage = () => {
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-100">
       <div className="container mx-auto px-4 py-6">
@@ -21,10 +28,23 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="flex space-x-4 items-center">
-            <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
-            <Link to="/auth/signup">
-              <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
-            </Link>
+            {user ? (
+              <Button 
+                onClick={handleLogout} 
+                variant="outline" 
+                className="flex items-center"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            ) : (
+              <>
+                <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
+                <Link to="/auth/signup">
+                  <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -47,61 +67,67 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="bg-white shadow-xl rounded-lg p-8 mt-4 mb-24">
-          <div className="flex justify-between items-center mb-10">
-            <div className="flex items-center">
-              <div className="rounded-full bg-indigo-500 w-8 h-8 flex items-center justify-center mr-2">
-                <span className="text-white font-bold">C</span>
-              </div>
-              <span className="font-semibold text-xl">Claro</span>
-            </div>
-            <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600">Get Tracking Script</Button>
+        {/* Demo section with title */}
+        <div className="relative bg-white shadow-xl rounded-lg p-8 mt-4 mb-24">
+          <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white py-2 px-4 rounded-t-lg text-center">
+            <span className="font-medium">Interactive Demo Preview</span>
           </div>
-
-          <div className="mb-6">
-            <div className="flex items-center mb-2">
-              <div className="mr-2">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 4V16M4 10H16" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+          <div className="pt-8">
+            <div className="flex justify-between items-center mb-10">
+              <div className="flex items-center">
+                <div className="rounded-full bg-indigo-500 w-8 h-8 flex items-center justify-center mr-2">
+                  <span className="text-white font-bold">C</span>
+                </div>
+                <span className="font-semibold text-xl">Claro</span>
               </div>
-              <span className="text-gray-700">AI Insights</span>
-              <div className="ml-auto">
-                <Button variant="ghost" size="sm">Generate new insight</Button>
-              </div>
+              <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 pointer-events-none opacity-90">Get Tracking Script</Button>
             </div>
-            <p className="text-gray-600 text-sm ml-7 mb-2">
-              You've received 18 page views from approximately 3 unique visitors. Your most visited page is "/home" with 6 views. This is followed by "/pricing" with 5 views.
-            </p>
-            <button className="text-indigo-500 text-sm ml-7">Show more</button>
-          </div>
 
-          <div className="mt-12">
-            <div className="grid grid-cols-5 gap-4">
-              <div className="p-4 border rounded-lg">
-                <p className="text-gray-500 uppercase text-xs mb-1">UNIQUE VISITORS</p>
-                <p className="text-2xl font-bold">3</p>
-                <p className="text-green-500 text-xs">+0%</p>
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="mr-2">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 4V16M4 10H16" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <span className="text-gray-700">AI Insights</span>
+                <div className="ml-auto">
+                  <Button variant="ghost" size="sm" className="pointer-events-none opacity-90">Generate new insight</Button>
+                </div>
               </div>
-              <div className="p-4 border rounded-lg">
-                <p className="text-gray-500 uppercase text-xs mb-1">TOTAL VISITS</p>
-                <p className="text-2xl font-bold">18</p>
-                <p className="text-green-500 text-xs">+0%</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <p className="text-gray-500 uppercase text-xs mb-1">TOTAL PAGEVIEWS</p>
-                <p className="text-2xl font-bold">18</p>
-                <p className="text-green-500 text-xs">+0%</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <p className="text-gray-500 uppercase text-xs mb-1">VIEWS PER VISIT</p>
-                <p className="text-2xl font-bold">6.00</p>
-                <p className="text-green-500 text-xs">+0%</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <p className="text-gray-500 uppercase text-xs mb-1">VISIT DURATION</p>
-                <p className="text-2xl font-bold">0s</p>
-                <p className="text-green-500 text-xs">+0%</p>
+              <p className="text-gray-600 text-sm ml-7 mb-2">
+                You've received 18 page views from approximately 3 unique visitors. Your most visited page is "/home" with 6 views. This is followed by "/pricing" with 5 views.
+              </p>
+              <button className="text-indigo-500 text-sm ml-7 pointer-events-none">Show more</button>
+            </div>
+
+            <div className="mt-12">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <p className="text-gray-500 uppercase text-xs mb-1">UNIQUE VISITORS</p>
+                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-green-500 text-xs">+0%</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <p className="text-gray-500 uppercase text-xs mb-1">TOTAL VISITS</p>
+                  <p className="text-2xl font-bold">18</p>
+                  <p className="text-green-500 text-xs">+0%</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <p className="text-gray-500 uppercase text-xs mb-1">TOTAL PAGEVIEWS</p>
+                  <p className="text-2xl font-bold">18</p>
+                  <p className="text-green-500 text-xs">+0%</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <p className="text-gray-500 uppercase text-xs mb-1">VIEWS PER VISIT</p>
+                  <p className="text-2xl font-bold">6.00</p>
+                  <p className="text-green-500 text-xs">+0%</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <p className="text-gray-500 uppercase text-xs mb-1">VISIT DURATION</p>
+                  <p className="text-2xl font-bold">0s</p>
+                  <p className="text-green-500 text-xs">+0%</p>
+                </div>
               </div>
             </div>
           </div>
