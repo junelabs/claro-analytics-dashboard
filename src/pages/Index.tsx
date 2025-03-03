@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Layout } from '@/components/Layout';
@@ -232,10 +233,14 @@ const Index = () => {
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <AbandonmentAnalytics loading={loading} />
-            <PageTimeAnalytics loading={loading} />
-            <LocationAnalytics loading={loading} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div className="space-y-6">
+              <AbandonmentAnalytics loading={loading} />
+              <PageTimeAnalytics loading={loading} />
+            </div>
+            <div>
+              <LocationAnalytics loading={loading} />
+            </div>
           </div>
         </div>
       </div>

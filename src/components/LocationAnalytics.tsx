@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { MapPin } from 'lucide-react';
+import { MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface LocationData {
   country: string;
@@ -66,7 +67,7 @@ export const LocationAnalytics = ({ data = [], loading = false }: LocationAnalyt
               <MapPin className="h-3 w-3 mr-1 text-gray-400" />
               {item.country}
               {item.cities && item.cities.length > 0 && (
-                <span className="ml-1 text-xs text-gray-400">(tap for details)</span>
+                <span className="ml-1 text-xs text-blue-500 hover:underline">(click for details)</span>
               )}
             </div>
             <div className="text-right">
@@ -138,15 +139,25 @@ export const LocationAnalytics = ({ data = [], loading = false }: LocationAnalyt
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">Visitor Locations</CardTitle>
-          <div className="text-xs text-gray-500 flex items-center">
-            <MapPin className="h-3 w-3 mr-1" />
-            {loading ? 'Loading...' : filter === 'country' ? 'By country' : `Cities in ${selectedCountry}`}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Geographic distribution of your visitors</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {renderContent()}
+          {loading ? (
+            <div className="text-center py-4 text-gray-500">Loading location data...</div>
+          ) : (
+            renderContent()
+          )}
         </div>
       </CardContent>
     </Card>
