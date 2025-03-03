@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, LogOut } from 'lucide-react';
@@ -9,8 +9,19 @@ import { useAuth } from '@/context/AuthContext';
 const LandingPage = () => {
   const { user, signOut } = useAuth();
 
+  useEffect(() => {
+    // Log authentication state for debugging
+    console.log("Current auth state:", { user, isLoggedIn: !!user });
+  }, [user]);
+
   const handleLogout = async () => {
-    await signOut();
+    console.log("Logout button clicked");
+    try {
+      await signOut();
+      console.log("Signed out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
   
   return (
@@ -68,11 +79,11 @@ const LandingPage = () => {
         </div>
 
         {/* Demo section with title */}
-        <div className="relative bg-white shadow-xl rounded-lg p-8 mt-4 mb-24">
+        <div className="relative bg-white shadow-xl rounded-lg p-8 mt-4 mb-24 cursor-not-allowed">
           <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white py-2 px-4 rounded-t-lg text-center">
             <span className="font-medium">Interactive Demo Preview</span>
           </div>
-          <div className="pt-8">
+          <div className="pt-8 pointer-events-none select-none opacity-95">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center">
                 <div className="rounded-full bg-indigo-500 w-8 h-8 flex items-center justify-center mr-2">
@@ -80,7 +91,7 @@ const LandingPage = () => {
                 </div>
                 <span className="font-semibold text-xl">Claro</span>
               </div>
-              <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 pointer-events-none opacity-90">Get Tracking Script</Button>
+              <Button size="sm" className="bg-indigo-500 hover:bg-indigo-500 opacity-90">Get Tracking Script</Button>
             </div>
 
             <div className="mb-6">
@@ -92,13 +103,13 @@ const LandingPage = () => {
                 </div>
                 <span className="text-gray-700">AI Insights</span>
                 <div className="ml-auto">
-                  <Button variant="ghost" size="sm" className="pointer-events-none opacity-90">Generate new insight</Button>
+                  <Button variant="ghost" size="sm" className="opacity-90">Generate new insight</Button>
                 </div>
               </div>
               <p className="text-gray-600 text-sm ml-7 mb-2">
                 You've received 18 page views from approximately 3 unique visitors. Your most visited page is "/home" with 6 views. This is followed by "/pricing" with 5 views.
               </p>
-              <button className="text-indigo-500 text-sm ml-7 pointer-events-none">Show more</button>
+              <button className="text-indigo-500 text-sm ml-7">Show more</button>
             </div>
 
             <div className="mt-12">
