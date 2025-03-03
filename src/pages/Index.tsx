@@ -235,7 +235,7 @@ const Index = () => {
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
           
-          {/* Updated layout: 2 columns with 2 tables in each column */}
+          {/* Updated layout: 2 columns with 2 tables/rows in each column, all with consistent height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             {/* First column */}
             <div className="grid grid-cols-1 gap-6">
