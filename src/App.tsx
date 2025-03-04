@@ -55,8 +55,7 @@ const App = () => (
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
             
-            {/* Protected routes */}
-            <Route path="/dashboard" element={<DashboardRoute />} />
+            {/* Protected routes - including all sub-routes */}
             <Route path="/dashboard/*" element={<DashboardRoute />} />
             
             {/* API route handler */}

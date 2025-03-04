@@ -1,8 +1,9 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 
 type AuthContextType = {
   session: Session | null;
@@ -28,10 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error fetching session:', error);
-          toast({
-            title: "Authentication Error",
-            description: "Failed to restore your session. Please sign in again.",
-            variant: "destructive"
+          toast.error("Authentication Error", {
+            description: "Failed to restore your session. Please sign in again."
           });
         } else {
           console.log('Got session:', session);
@@ -73,19 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
+      toast.success("Welcome back!", {
+        description: "You have successfully signed in."
       });
       
       // Redirect to dashboard instead of root path
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast({
-        title: "Sign in failed",
-        description: error.message || "Failed to sign in. Please try again.",
-        variant: "destructive"
+      toast.error("Sign in failed", {
+        description: error.message || "Failed to sign in. Please try again."
       });
     } finally {
       setLoading(false);
@@ -99,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         }
       });
 
@@ -107,16 +103,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
+      toast.success("Account created!", {
+        description: "Please check your email to verify your account."
       });
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast({
-        title: "Sign up failed",
-        description: error.message || "Failed to create account. Please try again.",
-        variant: "destructive"
+      toast.error("Sign up failed", {
+        description: error.message || "Failed to create account. Please try again."
       });
     } finally {
       setLoading(false);
@@ -142,9 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
+      toast.success("Signed out", {
+        description: "You have been successfully signed out."
       });
       
       // Ensure state is updated immediately
@@ -159,9 +151,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       navigate('/auth/login');
       
-      toast({
-        title: "Sign out completed",
-        description: "You have been signed out of your account.",
+      toast.success("Sign out completed", {
+        description: "You have been signed out of your account."
       });
     } finally {
       setLoading(false);
@@ -179,16 +170,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Password reset email sent",
-        description: "Please check your email for the password reset link.",
+      toast.success("Password reset email sent", {
+        description: "Please check your email for the password reset link."
       });
     } catch (error: any) {
       console.error('Password reset error:', error);
-      toast({
-        title: "Password reset failed",
-        description: error.message || "Failed to send reset email. Please try again.",
-        variant: "destructive"
+      toast.error("Password reset failed", {
+        description: error.message || "Failed to send reset email. Please try again."
       });
     } finally {
       setLoading(false);
