@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Layout } from '@/components/Layout';
 
 const ResetPassword = () => {
   const [email, setEmail] = useState('');
@@ -59,7 +61,7 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <Link to="/">
@@ -110,7 +112,7 @@ const ResetPassword = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

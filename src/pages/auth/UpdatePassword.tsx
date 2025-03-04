@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Layout } from '@/components/Layout';
 
 const UpdatePassword = () => {
   const [password, setPassword] = useState('');
@@ -91,7 +92,7 @@ const UpdatePassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <Link to="/">
@@ -155,7 +156,7 @@ const UpdatePassword = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

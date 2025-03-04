@@ -10,6 +10,7 @@ import { Header } from '@/components/Header';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Layout } from '@/components/Layout';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -50,7 +51,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50 flex flex-col">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <Link to="/">
@@ -140,7 +141,7 @@ const Login = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
