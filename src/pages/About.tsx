@@ -9,13 +9,19 @@ const About = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50">
       <div className="container mx-auto px-4 py-6">
         <nav className="flex justify-between items-center mb-16">
-          <Link to="/">
-            <Header />
-          </Link>
-          <div className="flex space-x-8 items-center">
-            <Link to="/about" className="text-indigo-600 font-medium">About</Link>
-            <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
-            <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
+          <div className="flex items-center">
+            <Link to="/">
+              <Header />
+            </Link>
+          </div>
+          <div className="flex items-center justify-center flex-grow mx-8">
+            <div className="flex space-x-12">
+              <Link to="/about" className="text-indigo-600 font-medium">About</Link>
+              <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
+              <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
+            </div>
+          </div>
+          <div className="flex space-x-4 items-center">
             <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
             <Link to="/auth/signup">
               <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
