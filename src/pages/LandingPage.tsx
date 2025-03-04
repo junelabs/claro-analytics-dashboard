@@ -68,7 +68,8 @@ const LandingPage = () => {
 
         <div className="max-w-4xl mx-auto text-center mt-24 mb-16">
           <h1 className="text-5xl font-bold tracking-tight mb-8">
-            Simplifying marketing and analytics for <span className="text-indigo-500">ecommerce businesses</span>.
+            Simplifying marketing and analytics<br />
+            <span className="text-indigo-500">for ecommerce businesses</span>.
           </h1>
           <Link to="/auth/signup">
             <Button className="bg-indigo-500 hover:bg-indigo-600 px-8 py-6 text-lg">
