@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ const About = () => {
             <Header />
           </Link>
           
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-grow mx-8">
             <div className="flex space-x-12">
               <Link to="/about" className="text-indigo-600 font-medium">About</Link>
@@ -36,7 +34,6 @@ const About = () => {
             </Link>
           </div>
           
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button 
               onClick={toggleMobileMenu} 
@@ -52,7 +49,6 @@ const About = () => {
           </div>
         </nav>
         
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden fixed inset-0 z-50 bg-white pt-20 px-6">
             <div className="flex flex-col space-y-6 items-center">
