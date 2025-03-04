@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,11 @@ const FAQs = () => {
           
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button onClick={toggleMobileMenu} className="p-2">
+            <button 
+              onClick={toggleMobileMenu} 
+              className="p-2 flex items-center justify-center"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
               {mobileMenuOpen ? (
                 <X className="h-6 w-6 text-gray-900" />
               ) : (
