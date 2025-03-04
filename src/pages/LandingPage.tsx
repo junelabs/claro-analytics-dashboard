@@ -12,7 +12,6 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Only redirect after auth state has been determined
     if (!loading && user) {
       console.log("User is logged in, redirecting to dashboard");
       setIsRedirecting(true);
@@ -20,7 +19,6 @@ const LandingPage = () => {
     }
   }, [user, loading, navigate]);
 
-  // If user is authenticated or we're checking auth status, show loading
   if (loading || isRedirecting) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-white to-purple-100">
@@ -53,7 +51,6 @@ const LandingPage = () => {
             </Link>
           </div>
           
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-grow mx-8">
             <div className="flex space-x-12">
               <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
@@ -69,18 +66,17 @@ const LandingPage = () => {
             </Link>
           </div>
           
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button onClick={toggleMobileMenu} className="p-2">
-              {mobileMenuOpen ? 
-                <X className="h-6 w-6 text-gray-900" /> : 
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6 text-gray-900" />
+              ) : (
                 <Menu className="h-6 w-6 text-gray-900" />
-              }
+              )}
             </button>
           </div>
         </nav>
         
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden fixed inset-0 z-50 bg-white pt-20 px-6">
             <div className="flex flex-col space-y-6 items-center">
@@ -122,7 +118,6 @@ const LandingPage = () => {
           </div>
         )}
 
-        {/* Hero Section */}
         <div className="max-w-4xl mx-auto text-center mt-24 mb-16">
           <h1 className="text-5xl font-bold tracking-tight mb-8">
             Simplifying marketing and analytics for <span className="text-indigo-500">ecommerce businesses</span>.
@@ -137,12 +132,10 @@ const LandingPage = () => {
           </Link>
         </div>
 
-        {/* Features Section */}
         <div className="max-w-6xl mx-auto mb-24">
           <h2 className="text-3xl font-bold text-center mb-16">Why choose our platform?</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
             <div className="bg-white rounded-xl shadow-md p-8 transform transition-all duration-300 hover:scale-105">
               <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
                 <Users className="h-7 w-7 text-indigo-600" />
@@ -153,7 +146,6 @@ const LandingPage = () => {
               </p>
             </div>
             
-            {/* Feature 2 */}
             <div className="bg-white rounded-xl shadow-md p-8 transform transition-all duration-300 hover:scale-105">
               <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
                 <BarChart3 className="h-7 w-7 text-indigo-600" />
@@ -164,7 +156,6 @@ const LandingPage = () => {
               </p>
             </div>
             
-            {/* Feature 3 */}
             <div className="bg-white rounded-xl shadow-md p-8 transform transition-all duration-300 hover:scale-105">
               <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
                 <Zap className="h-7 w-7 text-indigo-600" />
@@ -177,12 +168,10 @@ const LandingPage = () => {
           </div>
         </div>
         
-        {/* Testimonials Section */}
         <div className="bg-white rounded-xl shadow-lg p-12 mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Trusted by ecommerce leaders</h2>
           
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Testimonial 1 */}
             <div className="border border-gray-100 rounded-lg p-6">
               <div className="flex space-x-1 mb-4">
                 <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
@@ -205,7 +194,6 @@ const LandingPage = () => {
               </div>
             </div>
             
-            {/* Testimonial 2 */}
             <div className="border border-gray-100 rounded-lg p-6">
               <div className="flex space-x-1 mb-4">
                 <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
@@ -230,7 +218,6 @@ const LandingPage = () => {
           </div>
         </div>
         
-        {/* CTA Section */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-xl p-12 mb-24 text-white text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to simplify your marketing and analytics?</h2>
           <p className="text-xl mb-10 max-w-2xl mx-auto">

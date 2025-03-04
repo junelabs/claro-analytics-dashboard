@@ -72,10 +72,11 @@ const FAQs = () => {
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button onClick={toggleMobileMenu} className="p-2">
-              {mobileMenuOpen ? 
-                <X className="h-6 w-6 text-gray-900" /> : 
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6 text-gray-900" />
+              ) : (
                 <Menu className="h-6 w-6 text-gray-900" />
-              }
+              )}
             </button>
           </div>
         </nav>
