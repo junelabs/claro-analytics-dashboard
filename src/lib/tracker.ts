@@ -1,4 +1,3 @@
-
 // This file will be the source for the tracker.js script
 // that gets served to client websites
 
@@ -39,12 +38,6 @@ export const trackerScript = `
     const hostname = window.location.hostname.toLowerCase();
     const path = window.location.pathname.toLowerCase();
     
-    // Check for localhost which is likely development environment
-    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-      debug.log('Localhost detected, likely a development environment');
-      return true;
-    }
-    
     // Check for Lovable domains which host the analytics dashboard
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
@@ -53,21 +46,23 @@ export const trackerScript = `
       return true;
     }
     
+    // Only treat localhost as dashboard if it has dashboard paths
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+      if (path.includes('/dashboard') || path.includes('/analytics')) {
+        debug.log('Localhost dashboard path detected, skipping tracking');
+        return true;
+      }
+      debug.log('Localhost detected but not dashboard path, will track');
+      return false;
+    }
+    
     // Check URL path for analytics-specific patterns
-    if (path === '/' || 
-        path.includes('/dashboard') || 
-        path.includes('/analytics') || 
-        url.includes('claro-analytics')) {
+    if (path.includes('/dashboard') || path.includes('/analytics')) {
       debug.log('Analytics URL pattern detected');
       return true;
     }
     
-    // Check for query parameters that might indicate dashboard
-    if (url.includes('analytics=') || url.includes('dashboard=')) {
-      debug.log('Analytics query parameter detected');
-      return true;
-    }
-    
+    debug.log('Not a dashboard URL, will track');
     return false;
   };
   
@@ -93,6 +88,7 @@ export const trackerScript = `
     
     // Update last track time
     localStorage.setItem(TRACKER_CACHE_KEY, now.toString());
+    debug.log('Will track this page view');
     return true;
   };
 
@@ -121,21 +117,20 @@ export const trackerScript = `
     debug.log('Sending data to', endpoint);
 
     // Use sendBeacon if available, fall back to fetch
+    let sent = false;
     if (navigator.sendBeacon) {
       try {
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-        const sent = navigator.sendBeacon(endpoint, blob);
+        sent = navigator.sendBeacon(endpoint, blob);
         debug.log('Beacon sent successfully:', sent);
-        if (!sent) {
-          debug.warn('Beacon failed, falling back to fetch');
-          sendWithFetch();
-        }
       } catch (err) {
         debug.error('Beacon error', err);
-        sendWithFetch();
+        sent = false;
       }
-    } else {
-      debug.log('Beacon API not available, using fetch');
+    }
+    
+    if (!sent) {
+      debug.log('Using fetch for tracking');
       sendWithFetch();
     }
     
@@ -175,13 +170,6 @@ export const trackerScript = `
     }
   }
 
-  // Add error handler for the script
-  window.addEventListener('error', function(event) {
-    if (event.filename && event.filename.includes('tracker.js')) {
-      debug.error('Script error:', event.message);
-    }
-  });
-  
   // Don't track if dashboard is detected
   if (isDashboard()) {
     debug.log('Analytics dashboard detected - not initializing tracking');
@@ -230,6 +218,53 @@ export const trackerScript = `
     trackPageView();
   });
   
+  // Set up active session pinging
+  function pingSession() {
+    if (isDashboard()) return;
+    
+    debug.log('Pinging active session');
+    
+    const data = {
+      siteId: SITE_ID || 'unknown',
+      url: window.location.href,
+      referrer: document.referrer || '',
+      userAgent: navigator.userAgent,
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+      timestamp: new Date().toISOString(),
+      pageTitle: document.title || '',
+      eventType: 'session_ping',
+      isPing: true
+    };
+    
+    const endpoint = TRACKING_ENDPOINT + '/api/track';
+    
+    try {
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      navigator.sendBeacon(endpoint, blob);
+    } catch (err) {
+      // Fallback to fetch if sendBeacon fails
+      fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true
+      }).catch(e => debug.error('Error pinging session:', e));
+    }
+  }
+  
+  // Ping every minute to keep session active
+  setInterval(pingSession, 60000);
+  
+  // Ping on user activity
+  ['click', 'scroll', 'keypress', 'mousemove'].forEach(eventType => {
+    let debounceTimer;
+    window.addEventListener(eventType, () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(pingSession, 1000);
+    }, { passive: true });
+  });
+  
   // Log successful initialization
   debug.log('Successfully initialized');
 
@@ -239,7 +274,8 @@ export const trackerScript = `
   // Export for debugging
   window.claroAnalytics = {
     trackPageView,
-    debug
+    debug,
+    pingSession
   };
 })();
 `;

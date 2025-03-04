@@ -34,29 +34,39 @@ export const isDashboardUrl = (url: string): boolean => {
     const hostname = urlObj.hostname.toLowerCase();
     const path = urlObj.pathname.toLowerCase();
     
-    // Check for localhost or Lovable domains
-    if (hostname.includes('localhost') || 
-        hostname.includes('127.0.0.1') ||
-        hostname.includes('lovable.app') ||
-        hostname.includes('lovable.dev') ||
+    // Check for Lovable domains which host the analytics dashboard
+    if (hostname.includes('lovable.app') || 
+        hostname.includes('lovable.dev') || 
         hostname.includes('lovableproject.com')) {
+      console.log('Analytics dashboard detected (Lovable domain):', url);
       return true;
     }
     
-    // Check paths
-    if (path === '/' || 
-        path.includes('/dashboard') || 
-        path.includes('/analytics')) {
+    // Check for localhost or development only if it's the dashboard path
+    if ((hostname.includes('localhost') || hostname.includes('127.0.0.1')) && 
+        (path.includes('/dashboard') || path.includes('/analytics') || path === '/')) {
+      console.log('Analytics dashboard detected (localhost dashboard path):', url);
       return true;
     }
     
+    // Check for dashboard-specific paths
+    if (path.includes('/dashboard') || path.includes('/analytics')) {
+      console.log('Analytics dashboard detected (dashboard path):', url);
+      return true;
+    }
+    
+    // This is a client website URL, should be tracked
+    console.log('Client website URL detected, will track:', url);
     return false;
   } catch (e) {
     // If URL parsing fails, fall back to simple string matching
-    return url.includes('localhost') ||
-           url.includes('lovable') ||
-           url.includes('/dashboard') ||
-           url.includes('/analytics');
+    console.error('Error parsing URL:', e);
+    const isDashboard = url.includes('lovable') || 
+                        (url.includes('localhost') && url.includes('/dashboard')) ||
+                        url.includes('/analytics');
+    
+    console.log('URL parsing failed, dashboard detection fallback result:', isDashboard);
+    return isDashboard;
   }
 };
 
@@ -68,10 +78,16 @@ let lastPageViewTime = 0;
 
 export const pingActiveSession = async () => {
   const siteId = localStorage.getItem('claro_site_id');
-  if (!siteId) return;
+  if (!siteId) {
+    console.log('No site ID found, cannot ping active session');
+    return;
+  }
   
   const now = Date.now();
-  if (now - lastPingTime < pingInterval) return;
+  if (now - lastPingTime < pingInterval) {
+    console.log('Skipping ping - too soon since last ping');
+    return;
+  }
   
   // Skip pinging if this is a dashboard URL
   if (isDashboardUrl(window.location.href)) {
@@ -80,6 +96,7 @@ export const pingActiveSession = async () => {
   }
   
   try {
+    console.log('Sending session ping for site ID:', siteId);
     const pingData = {
       siteId,
       url: window.location.href,
@@ -121,6 +138,7 @@ export const shouldTrackPageView = () => {
     return false;
   }
   
+  console.log('Should track page view for:', currentUrl);
   lastPageViewUrl = currentUrl;
   lastPageViewTime = now;
   return true;
@@ -128,12 +146,15 @@ export const shouldTrackPageView = () => {
 
 // Initialize ping functionality
 export const initializePingTracking = () => {
+  console.log('Initializing ping tracking with current URL:', window.location.href);
   if (!isDashboardUrl(window.location.href)) {
+    console.log('This is a client site, initializing tracking');
     pingActiveSession();
     setInterval(pingActiveSession, pingInterval);
     
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && !isDashboardUrl(window.location.href)) {
+        console.log('Page became visible, sending ping');
         pingActiveSession();
       }
     });
@@ -149,5 +170,34 @@ export const initializePingTracking = () => {
         }, 1000);
       }, { passive: true });
     });
+    
+    // Add initial page view tracking
+    if (shouldTrackPageView()) {
+      console.log('Tracking initial page view');
+      const siteId = localStorage.getItem('claro_site_id');
+      if (siteId) {
+        const pageViewData = {
+          siteId,
+          url: window.location.href,
+          referrer: document.referrer,
+          userAgent: navigator.userAgent,
+          screenWidth: window.innerWidth,
+          screenHeight: window.innerHeight,
+          pageTitle: document.title,
+          timestamp: new Date().toISOString(),
+          eventType: 'page_view'
+        };
+        
+        fetch('/api/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pageViewData)
+        })
+        .then(() => console.log('Initial page view tracked successfully'))
+        .catch(err => console.error('Error tracking initial page view:', err));
+      }
+    }
+  } else {
+    console.log('This is the dashboard, not initializing client tracking');
   }
 };

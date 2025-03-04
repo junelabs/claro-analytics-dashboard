@@ -62,15 +62,29 @@ export const apiRouteHandler = async (request: Request) => {
   if (url.pathname === '/api/track') {
     console.log('Handling tracking request');
     
-    // Check for duplicate requests
-    if (isDuplicateRequest(request.url)) {
-      console.log('Skipping duplicate tracking request');
-      return new Response(JSON.stringify({ success: true, skipped: 'duplicate' }), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    // Don't check for duplicate requests for pings
+    let requestData;
+    try {
+      const clone = request.clone();
+      requestData = await clone.json();
+    } catch (e) {
+      console.error('Error parsing request data:', e);
+      requestData = {};
+    }
+    
+    if (!requestData.isPing && !requestData.eventType?.includes('ping')) {
+      // Check for duplicate requests only for page views
+      if (isDuplicateRequest(request.url)) {
+        console.log('Skipping duplicate tracking request');
+        return new Response(JSON.stringify({ success: true, skipped: 'duplicate' }), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
+    } else {
+      console.log('Processing ping request without duplicate check');
     }
     
     return handleTrackingRequest(request);
@@ -102,6 +116,8 @@ export const setupApiInterception = () => {
       }
       return originalFetch(input, init);
     };
+    
+    console.log('API interception set up for fetch');
   }
 
   if (typeof window !== 'undefined') {
@@ -124,5 +140,7 @@ export const setupApiInterception = () => {
         console.log('Caught script error for tracker.js, will attempt to serve directly');
       }
     }, true);
+    
+    console.log('API interception set up for XHR and script errors');
   }
 };

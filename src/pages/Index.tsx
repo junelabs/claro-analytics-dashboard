@@ -19,8 +19,11 @@ import { PageTimeAnalytics } from '@/components/PageTimeAnalytics';
 import { LocationAnalytics } from '@/components/LocationAnalytics';
 import { RevenueSources } from '@/components/RevenueSources';
 import { RevenueTrends } from '@/components/RevenueTrends';
+import { useTracking } from '@/hooks/useTracking';
 
 const Index = () => {
+  useTracking();
+  
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState('Last 30 days');
@@ -129,6 +132,11 @@ const Index = () => {
       });
       
       setTimeout(() => setScriptCopied(false), 3000);
+      
+      if (window.location.hostname === 'localhost') {
+        localStorage.setItem('enable_local_tracking', 'true');
+        console.log('Local tracking enabled for testing');
+      }
     } catch (error) {
       console.error('Failed to copy tracking script:', error);
       toast.error('Failed to copy tracking script', {
