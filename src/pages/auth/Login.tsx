@@ -7,41 +7,29 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
-import { supabase } from '@/integrations/supabase/client';
 import { LogIn } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { signIn, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-      
-      // Redirect to dashboard on successful login
-      navigate('/');
+      await signIn(email, password);
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Failed to sign in');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
     setError(null);
 
     try {
@@ -56,7 +44,6 @@ const Login = () => {
     } catch (err: any) {
       console.error('Google login error:', err);
       setError(err.message || 'Failed to sign in with Google');
-      setLoading(false);
     }
   };
 

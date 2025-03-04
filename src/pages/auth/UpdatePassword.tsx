@@ -1,30 +1,62 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
-import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
-const ResetPassword = () => {
-  const [email, setEmail] = useState('');
+const UpdatePassword = () => {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { resetPassword, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Check if we have the recovery token in the URL
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('type=recovery')) {
+      setError('Invalid or missing recovery link. Please request a new password reset.');
+    }
+  }, []);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     try {
-      await resetPassword(email);
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) throw error;
+      
       setSuccess(true);
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated. You can now sign in with your new password.",
+      });
+
+      // Redirect to login after a delay
+      setTimeout(() => {
+        navigate('/auth/login');
+      }, 2000);
     } catch (err: any) {
-      console.error('Password reset error:', err);
-      setError(err.message || 'Failed to send reset email');
+      console.error('Password update error:', err);
+      setError(err.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,14 +73,14 @@ const ResetPassword = () => {
           <div className="flex justify-center items-center flex-grow my-8">
             <Card className="w-full max-w-md">
               <CardHeader>
-                <CardTitle className="text-2xl text-center">Check your email</CardTitle>
+                <CardTitle className="text-2xl text-center">Password Updated</CardTitle>
                 <CardDescription className="text-center">
-                  We've sent you a password reset link. Please check your email to reset your password.
+                  Your password has been successfully updated. You will be redirected to the login page.
                 </CardDescription>
               </CardHeader>
               <CardFooter className="flex justify-center">
                 <Button asChild className="mt-4">
-                  <Link to="/auth/login">Back to login</Link>
+                  <Link to="/auth/login">Go to login</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -70,9 +102,9 @@ const ResetPassword = () => {
         <div className="flex justify-center items-center flex-grow my-8">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Reset password</CardTitle>
+              <CardTitle className="text-2xl text-center">Update Password</CardTitle>
               <CardDescription className="text-center">
-                Enter your email to receive a password reset link
+                Enter your new password below
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -82,20 +114,33 @@ const ResetPassword = () => {
                 </Alert>
               )}
 
-              <form onSubmit={handleResetPassword} className="space-y-4">
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="password">New Password</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Sending email...' : 'Send reset link'}
+                  {loading ? 'Updating password...' : 'Update password'}
                 </Button>
               </form>
             </CardContent>
@@ -114,4 +159,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword;
+export default UpdatePassword;

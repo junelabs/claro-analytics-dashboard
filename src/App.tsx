@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
@@ -12,11 +12,11 @@ import Pricing from "./pages/Pricing";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ResetPassword from "./pages/auth/ResetPassword";
-import { AuthProvider } from "./context/AuthContext";
+import UpdatePassword from "./pages/auth/UpdatePassword";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { handleTrackingRequest } from "./lib/supabase";
 import { getTrackingScript } from "./lib/tracker";
-import { useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -291,6 +291,7 @@ if (!isDashboardUrl(window.location.href)) {
 
 const Root = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   
   if (loading) {
     return (
@@ -301,16 +302,20 @@ const Root = () => {
   }
   
   // If user is logged in, show the dashboard, otherwise go to landing page
-  return user ? <Index /> : <Navigate to="/landing" replace />;
+  if (!user) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+  
+  return <Index />;
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
             <Route path="/" element={<Root />} />
             <Route path="/landing" element={<LandingPage />} />
@@ -320,6 +325,7 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/update-password" element={<UpdatePassword />} />
             <Route path="/tracker.js" element={
               <script dangerouslySetInnerHTML={{ 
                 __html: getTrackingScript('', window.location.origin) 
@@ -327,9 +333,9 @@ const App = () => (
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

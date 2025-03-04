@@ -7,47 +7,32 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Header } from '@/components/Header';
-import { supabase } from '@/integrations/supabase/client';
 import { LogIn } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { signUp, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        }
-      });
-
-      if (error) throw error;
-      
+      await signUp(email, password);
       setSuccess(true);
-      // Most Supabase projects will require email verification
-      // If email confirmation is disabled, redirect directly to dashboard
-      // navigate('/');
     } catch (err: any) {
       console.error('Signup error:', err);
       setError(err.message || 'Failed to sign up');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
-    setLoading(true);
     setError(null);
 
     try {
@@ -62,7 +47,6 @@ const Signup = () => {
     } catch (err: any) {
       console.error('Google signup error:', err);
       setError(err.message || 'Failed to sign up with Google');
-      setLoading(false);
     }
   };
 
