@@ -77,16 +77,8 @@ const LandingPage = () => {
           </Link>
         </div>
 
-        {/* Loved by teams section */}
-        <div className="max-w-4xl mx-auto text-center mt-24 mb-20">
-          <h2 className="text-xl font-medium text-gray-600 mb-10">Loved by teams at</h2>
-          <div className="flex justify-between items-center">
-            <img src="/lovable-uploads/341bf82f-998c-4367-b5fe-4bc338377d52.png" alt="Partner companies" className="w-full" />
-          </div>
-        </div>
-
         {/* Demo section with title */}
-        <div className="relative bg-white shadow-xl rounded-lg p-8 mt-4 mb-24 cursor-not-allowed">
+        <div className="relative bg-white shadow-xl rounded-lg p-8 mt-4 mb-24">
           <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white py-2 px-4 rounded-t-lg text-center">
             <span className="font-medium">Interactive Demo Preview</span>
           </div>
