@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -24,6 +23,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('AuthProvider: Initializing session...');
+    
     const setData = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -32,30 +33,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           toast.error("Authentication Error", {
             description: "Failed to restore your session. Please sign in again."
           });
-        } else {
+        } else if (session) {
           console.log('Got session:', session);
+          setSession(session);
+          setUser(session.user);
+        } else {
+          console.log('No active session found');
         }
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
       } catch (err) {
         console.error('Unexpected error getting session:', err);
+      } finally {
         setLoading(false);
       }
     };
 
-    // Initialize the session
     setData();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event);
-      setSession(session);
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      console.log('Auth state changed:', event, currentSession?.user?.id);
+      
+      if (currentSession) {
+        console.log('Setting new session and user from auth change');
+        setSession(currentSession);
+        setUser(currentSession.user);
+      } else {
+        console.log('Clearing session from auth change');
+        setSession(null);
+        setUser(null);
+      }
+      
       setLoading(false);
     });
 
     return () => {
+      console.log('Unsubscribing from auth changes');
       subscription.unsubscribe();
     };
   }, []);
@@ -76,7 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have successfully signed in."
       });
       
-      // Redirect to dashboard instead of root path
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -120,7 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Check if there's a valid session before signing out
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
         console.log('No active session found, redirecting to login page');
@@ -139,14 +148,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have been successfully signed out."
       });
       
-      // Ensure state is updated immediately
       setSession(null);
       setUser(null);
       navigate('/auth/login');
     } catch (error: any) {
       console.error('Error during sign out:', error);
       
-      // Even if there's an error, we should reset the local state and redirect
       setSession(null);
       setUser(null);
       navigate('/auth/login');

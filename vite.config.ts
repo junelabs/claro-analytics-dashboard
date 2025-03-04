@@ -13,7 +13,9 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     proxy: {
       '/tracker.js': 'http://localhost:8080',
       '/api/track': 'http://localhost:8080'
-    }
+    },
+    // This is important for SPA routing on dev server
+    historyApiFallback: true,
   },
   plugins: [
     react(),

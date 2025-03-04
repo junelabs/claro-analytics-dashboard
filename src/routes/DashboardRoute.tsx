@@ -27,15 +27,22 @@ const DashboardRoute = () => {
       navigate(location.pathname, { replace: true });
     }
   }, [location, navigate]);
-
-  useEffect(() => {
-    // Mark auth as checked once we've determined loading state
-    if (!loading) {
-      setAuthChecked(true);
-    }
-  }, [loading]);
   
+  // Using a second useEffect to ensure auth check happens only once
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!loading) {
+        console.log('Auth check completed. User authenticated:', !!user);
+        setAuthChecked(true);
+      }
+    };
+    
+    checkAuth();
+  }, [loading, user]);
+  
+  // Show loading state while authentication status is being determined
   if (loading || !authChecked) {
+    console.log('Dashboard route: Still loading or checking auth...');
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -43,12 +50,14 @@ const DashboardRoute = () => {
     );
   }
   
-  // If user is not logged in, redirect to login page
+  // If no user is authenticated after checking, redirect to login
   if (!user && !session) {
     console.log('No authenticated user found, redirecting to login');
     return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
   }
   
+  // User is authenticated, render the dashboard
+  console.log('User authenticated, rendering dashboard');
   return <Index />;
 };
 
