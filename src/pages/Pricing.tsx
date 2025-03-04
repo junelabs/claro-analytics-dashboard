@@ -8,51 +8,57 @@ import { Check } from 'lucide-react';
 const Pricing = () => {
   const plans = [
     {
-      name: "Starter",
-      price: "$0",
-      description: "For small websites and personal projects",
+      name: "Monthly",
+      price: "$14",
+      period: "per month",
+      description: "Perfect for getting started",
       features: [
-        "Up to 5,000 page views per month",
-        "Basic analytics dashboard",
-        "1 website",
-        "7-day data retention",
-        "Email support"
+        "Unlimited page views",
+        "Full analytics suite",
+        "Up to 5 websites",
+        "30-day data retention",
+        "Email support",
+        "Custom events tracking",
+        "Basic AI-powered insights"
       ],
-      cta: "Start for free",
+      cta: "Get started",
       highlighted: false
     },
     {
-      name: "Pro",
-      price: "$29",
-      description: "For growing businesses and online stores",
+      name: "Yearly",
+      price: "$140",
+      period: "per year",
+      description: "Save $28 with annual billing",
       features: [
-        "Up to 100,000 page views per month",
-        "Advanced analytics dashboard",
-        "5 websites",
-        "30-day data retention",
+        "Unlimited page views",
+        "Full analytics suite",
+        "Up to 10 websites",
+        "90-day data retention",
         "Priority email support",
         "Custom events tracking",
-        "AI-powered insights"
+        "Advanced AI-powered insights",
+        "API access"
       ],
-      cta: "Start 14-day trial",
+      cta: "Get started",
       highlighted: true
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      description: "For large ecommerce operations",
+      name: "Lifetime",
+      price: "$229",
+      period: "one-time payment",
+      description: "Pay once, use forever",
       features: [
         "Unlimited page views",
         "Full analytics suite",
         "Unlimited websites",
         "12-month data retention",
-        "24/7 priority support",
+        "Priority support",
         "Custom events tracking",
-        "AI-powered insights",
-        "Dedicated account manager",
-        "Custom integrations"
+        "Premium AI-powered insights",
+        "API access",
+        "Early access to new features"
       ],
-      cta: "Contact sales",
+      cta: "Get started",
       highlighted: false
     }
   ];
@@ -94,10 +100,10 @@ const Pricing = () => {
                 `}
               >
                 <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                <div className="mb-4">
+                <div className="mb-1">
                   <span className="text-3xl font-bold">{plan.price}</span>
-                  {plan.price !== "Custom" && <span className="text-gray-500">/month</span>}
                 </div>
+                <div className="text-gray-500 text-sm mb-4">{plan.period}</div>
                 <p className="text-gray-600 mb-6">{plan.description}</p>
                 
                 <ul className="space-y-3 mb-8">
@@ -120,7 +126,7 @@ const Pricing = () => {
           </div>
           
           <div className="text-center mb-8">
-            <p className="text-gray-700 mb-2">Need a custom solution?</p>
+            <p className="text-gray-700 mb-2">Need a custom enterprise solution?</p>
             <Button variant="link" className="text-indigo-600">
               Contact our sales team
             </Button>
