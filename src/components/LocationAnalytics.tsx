@@ -35,10 +35,54 @@ export const LocationAnalytics = ({ data = [], loading = false }: LocationAnalyt
         { name: 'Miami, FL', visits: 96, percentage: 7.7 }
       ]
     },
-    { country: 'United Kingdom', visits: 845, percentage: 28 },
-    { country: 'Germany', visits: 438, percentage: 15 },
-    { country: 'Canada', visits: 274, percentage: 9 },
-    { country: 'Australia', visits: 189, percentage: 6 },
+    { 
+      country: 'United Kingdom', 
+      visits: 845, 
+      percentage: 28,
+      cities: [
+        { name: 'London', visits: 425, percentage: 50.3 },
+        { name: 'Manchester', visits: 165, percentage: 19.5 },
+        { name: 'Birmingham', visits: 120, percentage: 14.2 },
+        { name: 'Glasgow', visits: 85, percentage: 10.1 },
+        { name: 'Liverpool', visits: 50, percentage: 5.9 }
+      ]
+    },
+    { 
+      country: 'Germany', 
+      visits: 438, 
+      percentage: 15,
+      cities: [
+        { name: 'Berlin', visits: 142, percentage: 32.4 },
+        { name: 'Munich', visits: 98, percentage: 22.4 },
+        { name: 'Hamburg', visits: 76, percentage: 17.4 },
+        { name: 'Frankfurt', visits: 68, percentage: 15.5 },
+        { name: 'Cologne', visits: 54, percentage: 12.3 }
+      ]
+    },
+    { 
+      country: 'Canada', 
+      visits: 274, 
+      percentage: 9,
+      cities: [
+        { name: 'Toronto', visits: 112, percentage: 40.9 },
+        { name: 'Vancouver', visits: 72, percentage: 26.3 },
+        { name: 'Montreal', visits: 48, percentage: 17.5 },
+        { name: 'Calgary', visits: 25, percentage: 9.1 },
+        { name: 'Ottawa', visits: 17, percentage: 6.2 }
+      ]
+    },
+    { 
+      country: 'Australia', 
+      visits: 189, 
+      percentage: 6,
+      cities: [
+        { name: 'Sydney', visits: 78, percentage: 41.3 },
+        { name: 'Melbourne', visits: 62, percentage: 32.8 },
+        { name: 'Brisbane', visits: 27, percentage: 14.3 },
+        { name: 'Perth', visits: 14, percentage: 7.4 },
+        { name: 'Adelaide', visits: 8, percentage: 4.2 }
+      ]
+    },
   ];
 
   const handleCountryClick = (country: string) => {
