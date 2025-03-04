@@ -171,9 +171,9 @@ const LandingPage = () => {
         
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-xl p-12 mb-24 text-white text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to transform your ecommerce analytics?</h2>
+          <h2 className="text-3xl font-bold mb-6">Ready to simplify your marketing and analytics?</h2>
           <p className="text-xl mb-10 max-w-2xl mx-auto">
-            Join our exclusive beta program and be among the first to leverage our powerful analytics platform.
+            Request access to join our group of beta customers and get a lifetime discount.
           </p>
           <Link to="/auth/signup">
             <Button className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-6 text-lg">
