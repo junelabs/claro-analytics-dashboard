@@ -10,7 +10,7 @@ import { VisitorChart } from '@/components/VisitorChart';
 import { AISummary } from '@/components/AISummary';
 import { getTrackingScript } from '@/lib/tracker';
 import { getAnalyticsSummary, getActiveVisitorCount } from '@/lib/supabase';
-import { Activity, BarChart3, Eye, LogOut, MousePointer, Timer, TrendingUp, Users, Sparkles } from 'lucide-react';
+import { Activity, BarChart3, Eye, LogOut, MousePointer, Search, Timer, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,14 @@ const Index = () => {
     return newId;
   });
   const [isLiveCount, setIsLiveCount] = useState(false);
+  const [graphFilters, setGraphFilters] = useState({
+    visitorChart: true,
+    abandonment: true,
+    location: true,
+    pageTime: true,
+    revenueSources: true,
+    revenueTrends: true
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -140,6 +148,15 @@ const Index = () => {
     }
   };
 
+  const handleGraphFilterChange = (id: string, checked: boolean) => {
+    setGraphFilters(prev => ({
+      ...prev,
+      [id]: checked
+    }));
+    
+    toast.info(`${checked ? 'Showing' : 'Hiding'} ${id.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+  };
+
   return (
     <Layout>
       <div className="flex flex-col space-y-8">
@@ -182,7 +199,11 @@ const Index = () => {
               <CurrentVisitors count={currentVisitors} siteName={siteName} isLive={isLiveCount} />
             </div>
             <div className="flex items-center space-x-3">
-              <FilterButton onClick={handleFilterClick} />
+              <FilterButton 
+                onClick={handleFilterClick} 
+                graphFilters={graphFilters}
+                onFilterChange={handleGraphFilterChange}
+              />
               <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
             </div>
           </div>
@@ -252,20 +273,24 @@ const Index = () => {
             <div className="text-sm font-medium text-gray-500">Days</div>
           </div>
 
-          <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
+          {graphFilters.visitorChart && <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            <AbandonmentAnalytics loading={loading} />
-            <LocationAnalytics loading={loading} />
+            {graphFilters.abandonment && <AbandonmentAnalytics loading={loading} />}
+            {graphFilters.location && <LocationAnalytics loading={loading} />}
             
-            <PageTimeAnalytics loading={loading} />
-            <div className="grid grid-cols-1 gap-6">
-              <RevenueSources loading={loading} />
-            </div>
+            {graphFilters.pageTime && <PageTimeAnalytics loading={loading} />}
+            {graphFilters.revenueSources && (
+              <div className="grid grid-cols-1 gap-6">
+                <RevenueSources loading={loading} />
+              </div>
+            )}
             
-            <div className="md:col-span-2">
-              <RevenueTrends loading={loading} />
-            </div>
+            {graphFilters.revenueTrends && (
+              <div className="md:col-span-2">
+                <RevenueTrends loading={loading} />
+              </div>
+            )}
           </div>
         </div>
       </div>
