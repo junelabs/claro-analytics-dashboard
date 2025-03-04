@@ -24,6 +24,7 @@ const Login = () => {
 
     try {
       await signIn(email, password);
+      // The navigation to dashboard is now handled in the AuthContext signIn method
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Failed to sign in');
@@ -37,7 +38,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
 

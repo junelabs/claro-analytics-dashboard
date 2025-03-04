@@ -79,7 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have successfully signed in.",
       });
       
-      navigate('/');
+      // Redirect to dashboard instead of root path
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
