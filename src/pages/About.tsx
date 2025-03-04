@@ -33,7 +33,7 @@ const About = () => {
           <div className="mt-16 mb-8">
             <Link to="/pricing">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
-                Sign up for free
+                Get Access
               </Button>
             </Link>
           </div>
