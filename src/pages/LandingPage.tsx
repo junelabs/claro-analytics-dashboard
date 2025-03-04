@@ -1,6 +1,5 @@
-
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, LogOut } from 'lucide-react';
 import { Header } from '@/components/Header';
@@ -8,13 +7,24 @@ import { useAuth } from '@/context/AuthContext';
 
 const LandingPage = () => {
   const { user, signOut } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Log authentication state for debugging
-    console.log("Current auth state:", { user, isLoggedIn: !!user });
-    setIsAuthenticated(!!user);
-  }, [user]);
+    // Redirect authenticated users to dashboard
+    if (user) {
+      console.log("User is logged in, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // If user is authenticated, don't render content while redirecting
+  if (user) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-white to-purple-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     console.log("Logout button clicked");
@@ -41,28 +51,10 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="flex space-x-4 items-center">
-            {isAuthenticated ? (
-              <>
-                <span className="text-gray-600 mr-2">
-                  {user?.email}
-                </span>
-                <Button 
-                  onClick={handleLogout} 
-                  variant="outline" 
-                  className="flex items-center"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
-                <Link to="/auth/signup">
-                  <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
-                </Link>
-              </>
-            )}
+            <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
+            <Link to="/auth/signup">
+              <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
+            </Link>
           </div>
         </nav>
 

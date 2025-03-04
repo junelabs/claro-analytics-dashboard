@@ -7,7 +7,14 @@ export const serveTrackingScript = async (req: Request) => {
   try {
     const url = new URL(req.url);
     const siteId = url.searchParams.get('siteId') || '';
-    const endpoint = `${url.origin}`;
+    let endpoint = `${url.origin}`;
+    
+    // Extract siteId from data-site-id attribute if available
+    const dataUrlMatch = req.url.match(/data-site-id=["']([^"']*)["']/);
+    if (dataUrlMatch && dataUrlMatch[1]) {
+      console.log('Found siteId in data attribute:', dataUrlMatch[1]);
+      endpoint = dataUrlMatch[1];
+    }
     
     console.log('Serving tracking script for siteId:', siteId, 'endpoint:', endpoint);
     

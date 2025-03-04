@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
@@ -16,12 +16,18 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import UpdatePassword from "./pages/auth/UpdatePassword";
 import { AuthProvider } from "./context/AuthContext";
 import DashboardRoute from "./routes/DashboardRoute";
-import { getTrackingScript } from "./lib/tracker";
 import { setupApiInterception } from "./utils/apiHandler";
 import { initializePingTracking } from "./utils/tracking";
 
 // Set up the query client for React Query
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Initialize API interception
 setupApiInterception();
@@ -37,21 +43,28 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/faqs" element={<FAQs />} />
             <Route path="/pricing" element={<Pricing />} />
+            
+            {/* Auth routes */}
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
-            <Route path="/tracker.js" element={
-              <script dangerouslySetInnerHTML={{ 
-                __html: getTrackingScript('', window.location.origin) 
-              }} />
-            } />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={<DashboardRoute />} />
+            <Route path="/dashboard/*" element={<DashboardRoute />} />
+            
+            {/* API routes handled by the API interception */}
+            <Route path="/api/*" element={<div>API Route</div>} />
+            <Route path="/tracker.js" element={<div>Tracker Script</div>} />
+            
+            {/* 404 route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
