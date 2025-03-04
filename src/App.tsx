@@ -17,7 +17,6 @@ import { AuthProvider } from "./context/AuthContext";
 import DashboardRoute from "./routes/DashboardRoute";
 import { setupApiInterception } from "./utils/apiHandler";
 import { initializePingTracking } from "./utils/tracking";
-import Index from "./pages/Index";
 
 // Set up the query client for React Query
 const queryClient = new QueryClient({
@@ -56,10 +55,7 @@ const App = () => (
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
             
-            {/* Dashboard route with nested routes - using element directly */}
-            <Route path="/dashboard" element={<DashboardRoute />} />
-            
-            {/* Handle nested dashboard routes explicitly */}
+            {/* Dashboard routes */}
             <Route path="/dashboard/*" element={<DashboardRoute />} />
             
             {/* API route handler */}
