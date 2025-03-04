@@ -1,5 +1,6 @@
 
-import { getTrackingScript, handleTrackingRequest } from "../lib/supabase";
+import { handleTrackingRequest } from "../lib/supabase";
+import { getTrackingScript } from "../lib/tracker";
 import { isDuplicateRequest } from "./tracking";
 
 export const serveTrackingScript = async (req: Request) => {
