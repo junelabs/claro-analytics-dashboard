@@ -176,9 +176,9 @@ const Index = () => {
         <div className="flex flex-col space-y-6">
           <AISummary siteId={siteId} data={analyticsData} />
           
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm font-medium">{siteName}</div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="text-sm font-medium text-gray-600">{siteName}</div>
               <CurrentVisitors count={currentVisitors} siteName={siteName} isLive={isLiveCount} />
             </div>
             <div className="flex items-center space-x-3">
