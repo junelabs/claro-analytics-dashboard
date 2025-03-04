@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ const About = () => {
           </p>
           
           <div className="mt-16 mb-8">
-            <Link to="/auth/signup">
+            <Link to="/pricing">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
                 Sign up for free
               </Button>
