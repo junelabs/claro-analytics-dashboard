@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/Header';
-import { Menu, ChevronUp } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface NavigationProps {
   onSignOut?: () => Promise<void>;
@@ -81,7 +81,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {mobileMenuOpen ? (
-              <ChevronUp className="h-6 w-6 text-indigo-600" />
+              <X className="h-6 w-6 text-indigo-600" />
             ) : (
               <Menu className="h-6 w-6 text-indigo-600" />
             )}
@@ -90,7 +90,20 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
       </nav>
       
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white pt-20 px-6">
+        <div className="md:hidden fixed inset-0 z-50 bg-white pt-8 px-6">
+          <div className="flex justify-between items-center mb-8">
+            <Link to="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
+              <Header />
+            </Link>
+            <button 
+              onClick={toggleMobileMenu} 
+              className="p-2 flex items-center justify-center bg-indigo-100 rounded-full"
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6 text-indigo-600" />
+            </button>
+          </div>
+          
           <div className="flex flex-col space-y-6 items-center">
             <Link 
               to="/about" 
