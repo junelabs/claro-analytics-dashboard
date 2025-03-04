@@ -1,15 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle, Star, Users, BarChart3, Zap, Menu, ChevronUp } from 'lucide-react';
-import { Header } from '@/components/Header';
+import { ArrowRight, CheckCircle, Star, Users, BarChart3, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { Navigation } from '@/components/Navigation';
 
 const LandingPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
@@ -37,90 +37,10 @@ const LandingPage = () => {
     }
   };
   
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-100">
       <div className="container mx-auto px-4 py-6">
-        <nav className="flex justify-between items-center mb-16">
-          <div className="flex items-center">
-            <Link to="/">
-              <Header />
-            </Link>
-          </div>
-          
-          <div className="hidden md:flex items-center justify-center flex-grow mx-8">
-            <div className="flex space-x-12">
-              <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
-              <Link to="/faqs" className="text-gray-600 hover:text-gray-900">FAQs</Link>
-              <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
-            </div>
-          </div>
-          
-          <div className="hidden md:flex space-x-4 items-center">
-            <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
-            <Link to="/pricing">
-              <Button className="bg-indigo-600 hover:bg-indigo-700">Get Access</Button>
-            </Link>
-          </div>
-          
-          <div className="md:hidden">
-            <button 
-              onClick={toggleMobileMenu} 
-              className="p-2 flex items-center justify-center bg-indigo-100 rounded-full"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileMenuOpen ? (
-                <ChevronUp className="h-6 w-6 text-indigo-600" />
-              ) : (
-                <Menu className="h-6 w-6 text-indigo-600" />
-              )}
-            </button>
-          </div>
-        </nav>
-        
-        {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-50 bg-white pt-20 px-6">
-            <div className="flex flex-col space-y-6 items-center">
-              <Link 
-                to="/about" 
-                className="text-gray-600 hover:text-gray-900 text-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                to="/faqs" 
-                className="text-gray-600 hover:text-gray-900 text-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                FAQs
-              </Link>
-              <Link 
-                to="/pricing" 
-                className="text-gray-600 hover:text-gray-900 text-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-              <Link 
-                to="/auth/login" 
-                className="text-gray-600 hover:text-gray-900 text-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link 
-                to="/pricing"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Button className="bg-indigo-600 hover:bg-indigo-700 w-full">Get Access</Button>
-              </Link>
-            </div>
-          </div>
-        )}
+        <Navigation onSignOut={handleLogout} userEmail={user?.email} />
 
         <div className="max-w-4xl mx-auto text-center mt-24 mb-16">
           <h1 className="text-5xl font-bold tracking-tight mb-8">
