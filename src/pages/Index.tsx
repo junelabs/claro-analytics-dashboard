@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Layout } from '@/components/Layout';
@@ -11,7 +10,7 @@ import { VisitorChart } from '@/components/VisitorChart';
 import { AISummary } from '@/components/AISummary';
 import { getTrackingScript } from '@/lib/tracker';
 import { getAnalyticsSummary, getActiveVisitorCount } from '@/lib/supabase';
-import { LogOut } from 'lucide-react';
+import { Activity, BarChart3, Eye, LogOut, MousePointer, Timer, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -188,44 +187,64 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <StatCard
               title="Unique Visitors"
               value={analyticsData?.uniqueVisitors ? `${analyticsData.uniqueVisitors}` : "0"}
               change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
+              icon={<Users className="h-4 w-4" />}
+              description="Total unique users visiting your site"
             />
             <StatCard
-              title="Total Visits"
+              title="Page Views"
               value={analyticsData?.pageViews ? `${analyticsData.pageViews}` : "0"}
               change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
+              icon={<Eye className="h-4 w-4" />}
+              description="Total pages viewed across all visits"
             />
             <StatCard
-              title="Total Pageviews"
-              value={analyticsData?.pageViews ? `${analyticsData.pageViews}` : "0"}
+              title="Avg. Time on Page"
+              value="2m 34s"
               change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
-            />
-            <StatCard
-              title="Views Per Visit"
-              value={analyticsData?.pageViews && analyticsData?.uniqueVisitors && analyticsData.uniqueVisitors > 0 
-                ? (analyticsData.pageViews / analyticsData.uniqueVisitors).toFixed(2) 
-                : "0"}
-              change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
+              icon={<Timer className="h-4 w-4" />}
+              description="Average time spent on each page"
             />
             <StatCard
               title="Bounce Rate"
-              value="0%"
+              value="42%"
               change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
+              icon={<MousePointer className="h-4 w-4" />}
+              description="Percentage of single-page visits"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard
+              title="Conversion Rate"
+              value="3.2%"
+              change={{ value: "+0.5%", trend: "up" }}
+              icon={<TrendingUp className="h-4 w-4" />}
+              description="Visitors who completed desired actions"
             />
             <StatCard
-              title="Visit Duration"
-              value="0s"
-              change={{ value: "0%", trend: "neutral" }}
-              className="lg:col-span-1"
+              title="Revenue"
+              value="$1,245"
+              change={{ value: "+12%", trend: "up" }}
+              icon={<BarChart3 className="h-4 w-4" />}
+              description="Total revenue from all sources"
+            />
+            <StatCard
+              title="Avg. Order Value"
+              value="$68.50"
+              change={{ value: "+3%", trend: "up" }}
+              icon={<Activity className="h-4 w-4" />}
+              description="Average value of each order"
+            />
+            <StatCard
+              title="AI Insights"
+              value="7 new"
+              icon={<Sparkles className="h-4 w-4" />}
+              description="AI-powered recommendations for your store"
             />
           </div>
 
@@ -235,19 +254,15 @@ const Index = () => {
 
           <VisitorChart timeRange={dateRange} analyticsData={analyticsData} />
           
-          {/* Updated layout: 2 tables per row with consistent heights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {/* First row - 2 tables */}
             <AbandonmentAnalytics loading={loading} />
             <LocationAnalytics loading={loading} />
             
-            {/* Second row - 2 tables */}
             <PageTimeAnalytics loading={loading} />
             <div className="grid grid-cols-1 gap-6">
               <RevenueSources loading={loading} />
             </div>
             
-            {/* Third row - 1 table taking full width */}
             <div className="md:col-span-2">
               <RevenueTrends loading={loading} />
             </div>
