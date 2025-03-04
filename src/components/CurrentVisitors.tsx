@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CurrentVisitorsProps {
@@ -18,14 +17,10 @@ export const CurrentVisitors = ({ count, siteName, isLive = true, className }: C
   
   return (
     <div className={cn(
-      "flex items-center space-x-3 px-4 py-2 rounded-lg transition-all", 
-      "bg-green-50 border border-green-100 shadow-sm hover:shadow-md",
+      "flex items-center px-4 py-2 rounded-lg transition-all", 
+      "bg-green-50/70 border border-green-100/70 shadow-sm",
       className
     )}>
-      <div className="rounded-full w-8 h-8 flex items-center justify-center bg-white/80">
-        <Users className="h-4 w-4 text-green-600" />
-      </div>
-      
       <div className="flex flex-col">
         <div className="flex items-center">
           <span className="font-semibold text-gray-800">
