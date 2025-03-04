@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,8 +42,8 @@ const LandingPage = () => {
         <Navigation onSignOut={handleLogout} userEmail={user?.email} />
 
         <div className="max-w-4xl mx-auto text-center mt-24 mb-16">
-          <h1 className="text-5xl md:text-5xl text-4xl font-bold tracking-tight mb-8">
-            <span className="whitespace-nowrap">Simplified marketing analytics</span> <span className="whitespace-nowrap">for <span className="text-indigo-500">ecommerce businesses</span>.</span>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-8">
+            Simplified marketing analytics for <span className="text-indigo-500">ecommerce businesses</span>.
           </h1>
           <p className="text-xl text-gray-600 mb-10">
             Gain valuable insights, track customer behavior, and optimize your online store with our powerful analytics platform.
