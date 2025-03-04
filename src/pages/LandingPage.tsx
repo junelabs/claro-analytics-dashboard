@@ -55,8 +55,8 @@ const LandingPage = () => {
           </div>
           <div className="flex space-x-4 items-center">
             <Link to="/auth/login" className="text-gray-600 hover:text-gray-900">Login</Link>
-            <Link to="/auth/signup">
-              <Button className="bg-indigo-600 hover:bg-indigo-700">Sign up</Button>
+            <Link to="/pricing">
+              <Button className="bg-indigo-600 hover:bg-indigo-700">Get Access</Button>
             </Link>
           </div>
         </nav>
@@ -69,9 +69,9 @@ const LandingPage = () => {
           <p className="text-xl text-gray-600 mb-10">
             Gain valuable insights, track customer behavior, and optimize your online store with our powerful analytics platform.
           </p>
-          <Link to="/auth/signup">
+          <Link to="/pricing">
             <Button className="bg-indigo-500 hover:bg-indigo-600 px-8 py-6 text-lg">
-              Join the waitlist <ArrowRight className="ml-2" />
+              Get access <ArrowRight className="ml-2" />
             </Button>
           </Link>
         </div>
@@ -175,9 +175,9 @@ const LandingPage = () => {
           <p className="text-xl mb-10 max-w-2xl mx-auto">
             Request access to join our group of beta customers and get a lifetime discount.
           </p>
-          <Link to="/auth/signup">
+          <Link to="/pricing">
             <Button className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-6 text-lg">
-              Get early access
+              Get access
             </Button>
           </Link>
         </div>
