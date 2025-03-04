@@ -67,7 +67,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
               </Link>
               <Link to="/auth/signup">
                 <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  {isActive('/pricing') ? 'Get Access' : 'Sign up'}
+                  Get Access
                 </Button>
               </Link>
             </>
@@ -137,7 +137,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Button className="bg-indigo-600 hover:bg-indigo-700 w-full">
-                    {isActive('/pricing') ? 'Get Access' : 'Sign up'}
+                    Get Access
                   </Button>
                 </Link>
               </>
