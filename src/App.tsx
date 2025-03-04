@@ -20,7 +20,6 @@ import { getTrackingScript } from "./lib/tracker";
 
 const queryClient = new QueryClient();
 
-// Track already processed URLs to prevent duplicate page views
 const processedUrls = new Map<string, number>();
 const DUPLICATE_WINDOW = 60000; // 60 seconds
 
@@ -46,7 +45,6 @@ const isDuplicateRequest = (url: string): boolean => {
   return false;
 };
 
-// Helper to determine if a URL is from the analytics dashboard
 const isDashboardUrl = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
@@ -289,7 +287,7 @@ if (!isDashboardUrl(window.location.href)) {
   });
 }
 
-const Root = () => {
+const DashboardRoute = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
   
@@ -301,7 +299,7 @@ const Root = () => {
     );
   }
   
-  // If user is logged in, show the dashboard, otherwise go to landing page
+  // If user is not logged in, redirect to login page
   if (!user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
@@ -317,7 +315,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-            <Route path="/" element={<Root />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/faqs" element={<FAQs />} />
