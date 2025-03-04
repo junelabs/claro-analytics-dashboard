@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle, Star, Users, BarChart3, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigation } from '@/components/Navigation';
+import { Layout } from '@/components/Layout';
 
 const LandingPage = () => {
   const { user, loading, signOut } = useAuth();
@@ -37,7 +39,7 @@ const LandingPage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-100">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <Navigation onSignOut={handleLogout} userEmail={user?.email} />
 
@@ -153,7 +155,7 @@ const LandingPage = () => {
           </Link>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

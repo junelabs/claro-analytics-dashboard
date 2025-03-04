@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Navigation } from '@/components/Navigation';
+import { Layout } from '@/components/Layout';
 import { Check } from 'lucide-react';
 
 const Pricing = () => {
@@ -26,7 +28,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-purple-50">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <Navigation />
 
@@ -74,7 +76,7 @@ const Pricing = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
