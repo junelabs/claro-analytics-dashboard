@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/Header';
-import { Menu, X } from 'lucide-react';
+import { Menu, ChevronUp } from 'lucide-react';
 
 const About = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -39,13 +40,13 @@ const About = () => {
           <div className="md:hidden">
             <button 
               onClick={toggleMobileMenu} 
-              className="p-2 flex items-center justify-center"
+              className="p-2 flex items-center justify-center bg-indigo-100 rounded-full"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-gray-900" />
+                <ChevronUp className="h-6 w-6 text-indigo-600" />
               ) : (
-                <Menu className="h-6 w-6 text-gray-900" />
+                <Menu className="h-6 w-6 text-indigo-600" />
               )}
             </button>
           </div>
