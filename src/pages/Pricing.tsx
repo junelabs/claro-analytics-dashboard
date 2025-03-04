@@ -51,9 +51,9 @@ const Pricing = () => {
         </nav>
 
         <div className="max-w-5xl mx-auto mt-12">
-          <h1 className="text-4xl font-bold mb-4 text-center">Simple, transparent pricing</h1>
+          <h1 className="text-4xl font-bold mb-4 text-center">Get early access today</h1>
           <p className="text-lg text-gray-700 mb-12 text-center">
-            One plan, lifetime access
+            Limited beta users will receive lifetime access at a special price
           </p>
           
           <div className="flex justify-center mb-16">
