@@ -90,8 +90,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
       </nav>
       
       <div 
-        className={`md:hidden fixed inset-0 z-50 bg-white pt-8 px-6 transition-all duration-300 ease-in-out ${
-          mobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+        className={`md:hidden fixed inset-0 z-50 bg-white pt-8 px-6 transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="flex justify-between items-center mb-8">
@@ -163,3 +163,4 @@ export const Navigation: React.FC<NavigationProps> = ({ onSignOut, userEmail }) 
     </>
   );
 };
+
