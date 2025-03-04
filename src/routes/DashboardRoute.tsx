@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Index from '@/pages/Index';
@@ -9,6 +9,7 @@ const DashboardRoute = () => {
   const { user, loading, session } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
   
   useEffect(() => {
     // If there's an error in the URL (like after a failed authentication)
@@ -26,8 +27,15 @@ const DashboardRoute = () => {
       navigate(location.pathname, { replace: true });
     }
   }, [location, navigate]);
+
+  useEffect(() => {
+    // Mark auth as checked once we've determined loading state
+    if (!loading) {
+      setAuthChecked(true);
+    }
+  }, [loading]);
   
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>

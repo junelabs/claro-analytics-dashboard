@@ -1,24 +1,27 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, LogOut } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
 
 const LandingPage = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Redirect authenticated users to dashboard
-    if (user) {
+    // Only redirect after auth state has been determined
+    if (!loading && user) {
       console.log("User is logged in, redirecting to dashboard");
+      setIsRedirecting(true);
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  // If user is authenticated, don't render content while redirecting
-  if (user) {
+  // If user is authenticated or we're checking auth status, show loading
+  if (loading || isRedirecting) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-white to-purple-100">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
