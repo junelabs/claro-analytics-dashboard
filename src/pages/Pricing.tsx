@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -36,11 +35,9 @@ const Pricing = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-purple-50">
       <div className="container mx-auto px-4 py-6">
         <nav className="flex justify-between items-center mb-16">
-          <div className="flex items-center">
-            <Link to="/">
-              <Header />
-            </Link>
-          </div>
+          <Link to="/" className="flex items-center">
+            <Header />
+          </Link>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-grow mx-8">
