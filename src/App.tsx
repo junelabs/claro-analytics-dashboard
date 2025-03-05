@@ -47,7 +47,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/landing" element={<Navigate to="/" replace />} />
             <Route path="/about" element={<About />} />
             <Route path="/faqs" element={<FAQs />} />
             <Route path="/pricing" element={<Pricing />} />

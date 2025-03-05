@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
                 <Mail size={20} />
               </a>
             </div>
-            <p className="text-gray-600 text-sm">contact@claro.so</p>
+            <p className="text-gray-600 text-sm">contact@claroinsights.com</p>
           </div>
         </div>
         
