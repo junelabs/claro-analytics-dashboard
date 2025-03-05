@@ -4,11 +4,13 @@ import { getTrackingStatus } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const TrackingDebugger = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<any>(null);
   const [refreshCount, setRefreshCount] = useState(0);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -18,6 +20,26 @@ export const TrackingDebugger = () => {
 
   const refreshStatus = () => {
     setStatus(getTrackingStatus());
+  };
+
+  const testDirectSupabaseConnection = async () => {
+    setTestResult("Testing direct Supabase connection...");
+    try {
+      // Test direct connection to Supabase
+      const response = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
+      
+      if (response.error) {
+        setTestResult(`Direct connection error: ${response.error.message}`);
+        toast.error(`Error connecting to Supabase: ${response.error.message}`);
+      } else {
+        setTestResult(`Direct connection successful! Table exists.`);
+        toast.success('Successfully connected to Supabase page_views table!');
+      }
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      setTestResult(`Direct connection exception: ${error}`);
+      toast.error(`Error testing connection: ${error}`);
+    }
   };
 
   const sendTestPing = async () => {
@@ -42,6 +64,8 @@ export const TrackingDebugger = () => {
         eventType: 'test_ping',
         isTest: true
       };
+      
+      console.log('Sending test ping with data:', pingData);
       
       const response = await fetch('/api/track', {
         method: 'POST',
@@ -104,26 +128,37 @@ export const TrackingDebugger = () => {
         <div className="border-b pb-2">
           <h4 className="font-medium text-sm mb-1">Supabase Configuration</h4>
           <div className="text-xs space-y-1">
-            <p>Environment variables: <span className={status?.supbaseConfigured?.hasEnvVars ? 'text-green-600' : 'text-red-600'}>
-              {status?.supbaseConfigured?.hasEnvVars ? 'Configured' : 'Missing'}
+            <p>Environment variables: <span className={status?.supbaseConfigured?.hasEnvVars ? 'text-green-600' : 'text-yellow-600'}>
+              {status?.supbaseConfigured?.hasEnvVars ? 'Configured' : 'Not using (using integration)'}
             </span></p>
-            <p>SUPABASE_URL: {status?.supbaseConfigured?.envDetails?.supabaseUrl}</p>
-            <p>SUPABASE_ANON_KEY: {status?.supbaseConfigured?.envDetails?.supabaseKey}</p>
             <p>Integration configured: <span className={status?.supbaseConfigured?.integrationConfigured ? 'text-green-600' : 'text-red-600'}>
               {status?.supbaseConfigured?.integrationConfigured ? 'Yes' : 'No'}
             </span></p>
+            <p>Integration details: <span className="font-mono text-xs">
+              {status?.supbaseConfigured?.integrationDetails?.clientAvailable ? 'Client loaded' : 'Client missing'}
+            </span></p>
+            {testResult && (
+              <p className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                Test result: {testResult}
+              </p>
+            )}
           </div>
         </div>
         
-        <div className="flex justify-between">
-          <Button size="sm" variant="outline" onClick={() => {
-            refreshStatus();
-            setRefreshCount(prev => prev + 1);
-          }}>
-            Refresh Status
-          </Button>
-          <Button size="sm" variant="default" onClick={sendTestPing}>
-            Send Test Ping
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between">
+            <Button size="sm" variant="outline" onClick={() => {
+              refreshStatus();
+              setRefreshCount(prev => prev + 1);
+            }}>
+              Refresh Status
+            </Button>
+            <Button size="sm" variant="default" onClick={sendTestPing}>
+              Send Test Ping
+            </Button>
+          </div>
+          <Button size="sm" variant="secondary" onClick={testDirectSupabaseConnection}>
+            Test Direct Supabase Connection
           </Button>
         </div>
       </div>

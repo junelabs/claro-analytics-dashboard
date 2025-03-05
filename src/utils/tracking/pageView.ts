@@ -14,7 +14,7 @@ export const shouldTrackPageView = (url: string = window.location.href) => {
     return false;
   }
   
-  if (currentUrl === lastPageViewUrl && now - lastPageViewTime < 30000) { // Reduced to 30s from 60s
+  if (currentUrl === lastPageViewUrl && now - lastPageViewTime < 30000) { // 30s window
     console.log('Skipping duplicate page view tracking within 30s window');
     return false;
   }
@@ -27,42 +27,61 @@ export const shouldTrackPageView = (url: string = window.location.href) => {
 
 // Export this helper to check if tracking is working
 export const getTrackingStatus = () => {
+  const supabaseIntegration = getSupabaseIntegrationStatus();
+  
   return {
     lastPageViewUrl,
     lastPageViewTime,
     timeSinceLastTracking: lastPageViewTime ? `${Math.floor((Date.now() - lastPageViewTime) / 1000)}s ago` : 'Never tracked',
     trackingEnabled: !!localStorage.getItem('claro_site_id'),
     siteId: localStorage.getItem('claro_site_id'),
-    supbaseConfigured: checkSupabaseConfig()
+    supbaseConfigured: supabaseIntegration
   };
 };
 
 // Helper to check if Supabase is properly configured
-const checkSupabaseConfig = () => {
+const getSupabaseIntegrationStatus = () => {
   try {
-    // Check environment variables
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    // Check client config from integrations
-    let integrationConfigured = false;
+    // Try to get integration client directly
+    let integrationClient = null;
     try {
-      const integrationModule = require('@/integrations/supabase/client');
-      integrationConfigured = !!integrationModule.supabase;
+      const { supabase } = require('@/integrations/supabase/client');
+      integrationClient = supabase;
     } catch (e) {
-      console.error('Error checking integration configuration:', e);
+      console.error('Error accessing integration client:', e);
+    }
+    
+    // Check if client has the needed methods
+    const clientConfigured = integrationClient && 
+                            typeof integrationClient.from === 'function';
+    
+    if (clientConfigured) {
+      console.log('Supabase integration client available and properly configured');
+    } else {
+      console.warn('Supabase integration client not properly configured');
+    }
+    
+    // Test integration client by getting a table reference (doesn't need to query)
+    let tableAccessWorks = false;
+    if (clientConfigured) {
+      try {
+        const tableRef = integrationClient.from('page_views');
+        tableAccessWorks = !!tableRef;
+      } catch (e) {
+        console.error('Error accessing page_views table:', e);
+      }
     }
     
     return {
-      hasEnvVars: !!(supabaseUrl && supabaseKey),
-      integrationConfigured,
-      envDetails: {
-        supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
-        supabaseKey: supabaseKey ? 'Set' : 'Missing'
+      hasEnvVars: false, // We'll use integration client directly, not env vars
+      integrationConfigured: clientConfigured,
+      tableAccessible: tableAccessWorks,
+      integrationDetails: {
+        clientAvailable: !!integrationClient,
       }
     };
   } catch (e) {
-    console.error('Error checking Supabase config:', e);
+    console.error('Error checking Supabase integration status:', e);
     return { error: String(e) };
   }
 };
