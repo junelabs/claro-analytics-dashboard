@@ -68,9 +68,10 @@ const getSupabaseIntegrationStatus = () => {
       }
     }
     
-    // Get project details
-    const projectUrl = supabase?.supabaseUrl || '';
-    const hasKey = !!supabase?.supabaseKey;
+    // Get project details safely by using the import from .env
+    // Instead of accessing protected properties directly
+    const projectUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const hasKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     return {
       hasConfiguredClient: clientConfigured,
@@ -103,7 +104,8 @@ export const testSupabaseConnection = async () => {
     
     // First test that we can reach the Supabase REST API
     try {
-      const url = supabase.supabaseUrl;
+      // Use environment variables instead of accessing protected properties
+      const url = import.meta.env.VITE_SUPABASE_URL;
       if (!url) {
         throw new Error('Supabase URL is not defined');
       }
@@ -111,7 +113,7 @@ export const testSupabaseConnection = async () => {
       console.log(`[Test ${testId}] Checking Supabase API at ${url}`);
       const response = await fetch(`${url}/rest/v1/`, {
         headers: {
-          'apikey': supabase.supabaseKey || '',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
           'Content-Type': 'application/json'
         }
       });
@@ -150,11 +152,10 @@ export const testSupabaseConnection = async () => {
       console.error(`[Test ${testId}] Supabase connection test failed:`, error);
       return { 
         success: false, 
-        error: error,
-        errorMessage: error.message,
+        error: error.message,
         errorCode: error.code,
         hint: error.hint || 'No hint provided',
-        statusCode: error.status || 'No status code' 
+        statusText: error.message || 'No status message' // Changed from status to statusText
       };
     }
     

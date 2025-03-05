@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getTrackingStatus, testSupabaseConnection } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
@@ -48,12 +47,12 @@ export const TrackingDebugger = () => {
     setTestResult("Testing direct Supabase connection...");
     
     try {
-      // Log the client details
+      // Get configuration from environment variables instead of accessing protected properties
       const clientDetails = {
         clientAvailable: !!supabase,
-        supabaseUrl: supabase?.supabaseUrl || 'Not available',
-        hasApiKey: !!supabase?.supabaseKey,
-        functionsUrl: supabase?.functionsUrl || 'Not available'
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'Not available',
+        hasApiKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+        // Removed functionsUrl since it's a protected property
       };
       
       console.log('Supabase client details:', clientDetails);
@@ -67,28 +66,37 @@ export const TrackingDebugger = () => {
       if (!response.success) {
         let errorDetails = '';
         
-        if (response.errorMessage) {
-          errorDetails = response.errorMessage;
-        } else if (response.error) {
-          if (typeof response.error === 'object') {
-            errorDetails = JSON.stringify(response.error, null, 2);
-          } else {
-            errorDetails = response.error.toString();
+        // Safe property access with type checking
+        if (typeof response === 'object' && response !== null) {
+          if ('error' in response && response.error) {
+            if (typeof response.error === 'object') {
+              errorDetails = JSON.stringify(response.error, null, 2);
+            } else {
+              errorDetails = String(response.error);
+            }
           }
         }
         
         setTestResult(`Connection error: ${errorDetails}`);
-        if (response.hint) {
-          setTestResult(prev => `${prev}\nHint: ${response.hint}`);
-        }
-        if (response.statusCode) {
-          setTestResult(prev => `${prev}\nStatus Code: ${response.statusCode}`);
+        
+        // Safe access to hint and statusText properties
+        if (typeof response === 'object' && response !== null) {
+          if ('hint' in response && response.hint) {
+            setTestResult(prev => `${prev}\nHint: ${response.hint}`);
+          }
+          if ('statusText' in response && response.statusText) {
+            setTestResult(prev => `${prev}\nStatus: ${response.statusText}`);
+          }
         }
         
         toast.error(`Error connecting to Supabase: ${errorDetails}`);
         console.error('Connection test response error:', response);
       } else {
-        const countText = response.count !== undefined ? ` Found ${response.count} records.` : '';
+        // Safe access to count property
+        const countText = ('count' in response && response.count !== undefined) 
+          ? ` Found ${response.count} records.` 
+          : '';
+          
         setTestResult(`Connection successful! Table exists and is accessible.${countText}`);
         toast.success('Successfully connected to Supabase page_views table!');
         console.log('Connection test successful:', response);
@@ -118,10 +126,14 @@ export const TrackingDebugger = () => {
       const pingResult = await pingActiveSession();
       console.log('Test ping result:', pingResult);
       
+      // Safe property access with type checking for skipped property
       if (pingResult.success) {
-        toast.success(`Test ping sent successfully via ${pingResult.method || 'unknown'} method!`);
-      } else if (pingResult.skipped) {
-        toast.info(`Test ping skipped: ${pingResult.reason}`);
+        if ('skipped' in pingResult && pingResult.skipped) {
+          const reason = 'reason' in pingResult ? pingResult.reason : 'Unknown reason';
+          toast.info(`Test ping skipped: ${reason}`);
+        } else {
+          toast.success(`Test ping sent successfully via ${pingResult.method || 'unknown'} method!`);
+        }
       } else {
         toast.error(`Test ping failed: ${pingResult.error || 'Unknown error'}`);
       }
