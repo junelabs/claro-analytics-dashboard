@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { getAnalyticsSummary, getActiveVisitorCount } from '@/lib/supabase';
@@ -22,7 +21,6 @@ export const useDashboardData = (siteId: string) => {
     revenueTrends: true
   });
 
-  // Function to fetch data
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -56,7 +54,6 @@ export const useDashboardData = (siteId: string) => {
     }
   };
 
-  // Function to fetch active visitor count
   const fetchActiveVisitors = async () => {
     try {
       const activeVisitorCount = await getActiveVisitorCount(siteId);
@@ -101,7 +98,6 @@ export const useDashboardData = (siteId: string) => {
 
   const copyTrackingScript = () => {
     try {
-      // Use current origin or claroinsights.com if in production
       const endpoint = window.location.hostname === 'claroinsights.com' 
         ? 'https://claroinsights.com' 
         : window.location.origin;
@@ -129,11 +125,9 @@ export const useDashboardData = (siteId: string) => {
   };
 
   useEffect(() => {
-    // Initial data fetch
     fetchData();
     fetchActiveVisitors();
     
-    // Set up hourly refresh for graphs
     const graphIntervalId = setInterval(() => {
       console.log('Hourly refresh: Updating dashboard graphs');
       fetchData();
@@ -141,13 +135,12 @@ export const useDashboardData = (siteId: string) => {
       toast.info('Dashboard data refreshed', { 
         description: 'Graphs and analytics have been updated.' 
       });
-    }, 3600000); // 3,600,000ms = 1 hour
+    }, 3600000);
     
-    // Set up minute refresh for active visitors
     const visitorIntervalId = setInterval(() => {
       console.log('Minute refresh: Updating active visitor count');
       fetchActiveVisitors();
-    }, 60000); // 60,000ms = 1 minute
+    }, 60000);
     
     return () => {
       clearInterval(graphIntervalId);
@@ -156,7 +149,6 @@ export const useDashboardData = (siteId: string) => {
   }, [siteId]);
 
   useEffect(() => {
-    // Refresh data when date range changes
     fetchData();
   }, [dateRange]);
 
