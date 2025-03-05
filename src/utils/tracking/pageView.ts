@@ -1,5 +1,6 @@
 
 import { isDashboardUrl } from './urlUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 let lastPageViewUrl = '';
 let lastPageViewTime = 0;
@@ -42,18 +43,11 @@ export const getTrackingStatus = () => {
 // Helper to check if Supabase is properly configured
 const getSupabaseIntegrationStatus = () => {
   try {
-    // Try to get integration client directly
-    let integrationClient = null;
-    try {
-      const { supabase } = require('@/integrations/supabase/client');
-      integrationClient = supabase;
-    } catch (e) {
-      console.error('Error accessing integration client:', e);
-    }
+    // Use the integration client directly
+    console.log('Checking Supabase integration status with direct client');
     
     // Check if client has the needed methods
-    const clientConfigured = integrationClient && 
-                            typeof integrationClient.from === 'function';
+    const clientConfigured = supabase && typeof supabase.from === 'function';
     
     if (clientConfigured) {
       console.log('Supabase integration client available and properly configured');
@@ -65,19 +59,21 @@ const getSupabaseIntegrationStatus = () => {
     let tableAccessWorks = false;
     if (clientConfigured) {
       try {
-        const tableRef = integrationClient.from('page_views');
+        const tableRef = supabase.from('page_views');
         tableAccessWorks = !!tableRef;
+        console.log('Table reference exists:', tableAccessWorks);
       } catch (e) {
         console.error('Error accessing page_views table:', e);
       }
     }
     
     return {
-      hasEnvVars: false, // We'll use integration client directly, not env vars
+      hasConfiguredClient: clientConfigured,
       integrationConfigured: clientConfigured,
       tableAccessible: tableAccessWorks,
       integrationDetails: {
-        clientAvailable: !!integrationClient,
+        clientAvailable: !!supabase,
+        supabaseUrl: supabase.supabaseUrl,
       }
     };
   } catch (e) {

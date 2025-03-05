@@ -25,15 +25,23 @@ export const TrackingDebugger = () => {
   const testDirectSupabaseConnection = async () => {
     setTestResult("Testing direct Supabase connection...");
     try {
+      // Log the client details
+      console.log('Supabase client:', 
+        supabase ? 'Available' : 'Not available', 
+        'URL:', supabase.supabaseUrl
+      );
+      
       // Test direct connection to Supabase
       const response = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
       
       if (response.error) {
         setTestResult(`Direct connection error: ${response.error.message}`);
         toast.error(`Error connecting to Supabase: ${response.error.message}`);
+        console.error('Connection test response error:', response.error);
       } else {
-        setTestResult(`Direct connection successful! Table exists.`);
+        setTestResult(`Direct connection successful! Table exists and is accessible.`);
         toast.success('Successfully connected to Supabase page_views table!');
+        console.log('Connection test successful:', response);
       }
     } catch (error) {
       console.error('Error testing connection:', error);
@@ -67,19 +75,39 @@ export const TrackingDebugger = () => {
       
       console.log('Sending test ping with data:', pingData);
       
+      // Try direct Supabase insertion
+      const { data, error } = await supabase.from('page_views').insert({
+        site_id: siteId,
+        url: window.location.href,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent,
+        screen_width: window.innerWidth,
+        screen_height: window.innerHeight,
+        timestamp: new Date().toISOString()
+      });
+      
+      if (error) {
+        console.error('Direct Supabase insertion error:', error);
+        toast.error(`Direct insertion error: ${error.message}`);
+      } else {
+        console.log('Direct Supabase insertion successful:', data);
+        toast.success('Test ping directly inserted to Supabase!');
+      }
+      
+      // Also try API route for comparison
       const response = await fetch('/api/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pingData)
       });
       
-      const data = await response.json();
-      console.log('Test ping response:', data);
+      const apiData = await response.json();
+      console.log('API route test ping response:', apiData);
       
-      if (data.success) {
-        toast.success('Test ping sent successfully!');
+      if (apiData.success) {
+        toast.success('API route test ping sent successfully!');
       } else {
-        toast.error(`Error: ${data.error || 'Unknown error'}`);
+        toast.error(`API route error: ${apiData.error || 'Unknown error'}`);
       }
       
       refreshStatus();
@@ -128,14 +156,14 @@ export const TrackingDebugger = () => {
         <div className="border-b pb-2">
           <h4 className="font-medium text-sm mb-1">Supabase Configuration</h4>
           <div className="text-xs space-y-1">
-            <p>Environment variables: <span className={status?.supbaseConfigured?.hasEnvVars ? 'text-green-600' : 'text-yellow-600'}>
-              {status?.supbaseConfigured?.hasEnvVars ? 'Configured' : 'Not using (using integration)'}
+            <p>Client available: <span className={status?.supbaseConfigured?.hasConfiguredClient ? 'text-green-600' : 'text-red-600'}>
+              {status?.supbaseConfigured?.hasConfiguredClient ? 'Yes' : 'No'}
             </span></p>
-            <p>Integration configured: <span className={status?.supbaseConfigured?.integrationConfigured ? 'text-green-600' : 'text-red-600'}>
-              {status?.supbaseConfigured?.integrationConfigured ? 'Yes' : 'No'}
+            <p>Supabase URL: <span className="font-mono text-xs break-all">
+              {status?.supbaseConfigured?.integrationDetails?.supabaseUrl || 'Not available'}
             </span></p>
-            <p>Integration details: <span className="font-mono text-xs">
-              {status?.supbaseConfigured?.integrationDetails?.clientAvailable ? 'Client loaded' : 'Client missing'}
+            <p>Table accessible: <span className={status?.supbaseConfigured?.tableAccessible ? 'text-green-600' : 'text-red-600'}>
+              {status?.supbaseConfigured?.tableAccessible ? 'Yes' : 'No'}
             </span></p>
             {testResult && (
               <p className="mt-2 p-2 bg-gray-100 rounded text-xs">
