@@ -16,6 +16,9 @@ export const TrackingDebugger = () => {
   const [pingStats, setPingStats] = useState<any>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [forceTracking, setForceTracking] = useState<boolean>(
+    localStorage.getItem('force_tracking') === 'true'
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -223,6 +226,44 @@ export const TrackingDebugger = () => {
     }
   };
 
+  const toggleForceTracking = () => {
+    const newValue = !forceTracking;
+    setForceTracking(newValue);
+    
+    if (newValue) {
+      localStorage.setItem('force_tracking', 'true');
+      toast.info('Force tracking enabled', { 
+        description: 'Dashboard detection bypassed. All page views will be tracked.'
+      });
+    } else {
+      localStorage.removeItem('force_tracking');
+      toast.info('Force tracking disabled', {
+        description: 'Normal tracking rules applied. Dashboard views will be ignored.'
+      });
+    }
+    
+    refreshStatus();
+  };
+
+  const resetSiteId = () => {
+    const newId = 'site_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('claro_site_id', newId);
+    toast.success('Site ID reset to: ' + newId);
+    refreshStatus();
+  };
+
+  const ensureSiteId = () => {
+    const siteId = localStorage.getItem('claro_site_id');
+    if (!siteId) {
+      const newId = 'site_' + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('claro_site_id', newId);
+      toast.success('Site ID created: ' + newId);
+    } else {
+      toast.info('Site ID already exists: ' + siteId);
+    }
+    refreshStatus();
+  };
+
   if (!isOpen) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
@@ -252,6 +293,9 @@ export const TrackingDebugger = () => {
             <p>Site ID: <span className="font-mono">{status?.siteId || 'Not set'}</span></p>
             <p>Tracking enabled: <span className={status?.trackingEnabled ? 'text-green-600' : 'text-red-600'}>
               {status?.trackingEnabled ? 'Yes' : 'No'}
+            </span></p>
+            <p>Force tracking: <span className={status?.forcingTracking ? 'text-orange-600' : 'text-gray-600'}>
+              {status?.forcingTracking ? 'Enabled (ignoring dashboard detection)' : 'Disabled'}
             </span></p>
             <p>Last URL tracked: <span className="font-mono">{status?.lastPageViewUrl || 'None'}</span></p>
             <p>Last tracking: {status?.timeSinceLastTracking || 'Never'}</p>
@@ -321,6 +365,7 @@ export const TrackingDebugger = () => {
               Send Test Ping
             </Button>
           </div>
+          
           <div className="flex justify-between">
             <Button 
               size="sm" 
@@ -328,7 +373,7 @@ export const TrackingDebugger = () => {
               onClick={testDirectSupabaseConnection}
               disabled={isTesting || isLoading}
             >
-              Test Supabase Connection
+              Test Connection
             </Button>
             <Button 
               size="sm" 
@@ -339,14 +384,44 @@ export const TrackingDebugger = () => {
               Check Table Data
             </Button>
           </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={checkSiteReachability}
-            disabled={isLoading}
-          >
-            Check API Reachability
-          </Button>
+          
+          <div className="flex justify-between">
+            <Button 
+              size="sm" 
+              variant={forceTracking ? "destructive" : "outline"} 
+              onClick={toggleForceTracking}
+              disabled={isLoading}
+            >
+              {forceTracking ? 'Disable Force Tracking' : 'Enable Force Tracking'}
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={checkSiteReachability}
+              disabled={isLoading}
+            >
+              Check API
+            </Button>
+          </div>
+          
+          <div className="flex justify-between">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={ensureSiteId}
+              disabled={isLoading}
+            >
+              Ensure Site ID
+            </Button>
+            <Button 
+              size="sm" 
+              variant="destructive" 
+              onClick={resetSiteId}
+              disabled={isLoading}
+            >
+              Reset Site ID
+            </Button>
+          </div>
         </div>
         
         <div className="text-xs text-gray-500 border-t pt-2 mt-2">

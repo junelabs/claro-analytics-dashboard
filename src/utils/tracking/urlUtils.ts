@@ -2,42 +2,44 @@
 // Helper to determine if a URL is from the analytics dashboard
 export const isDashboardUrl = (url: string): boolean => {
   try {
+    // For testing - force bypassing dashboard detection if needed
+    if (localStorage.getItem('force_tracking') === 'true') {
+      console.log('Force tracking enabled, bypassing dashboard detection');
+      return false;
+    }
+    
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
     const path = urlObj.pathname.toLowerCase();
     
-    // Check for Lovable domains which host the analytics dashboard
+    // More selective detection of dashboard URLs
+    // Only classify as dashboard if it's explicitly in a dashboard path
+    if (path.includes('/dashboard') || path.includes('/analytics')) {
+      console.log('Analytics dashboard path detected:', path);
+      return true;
+    }
+    
+    // Only treat specific domains as dashboard
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
         hostname.includes('lovableproject.com')) {
-      console.log('Analytics dashboard detected (Lovable domain):', url);
+      console.log('Dashboard domain detected:', hostname);
       return true;
     }
     
-    // Check for localhost or development only if it's the dashboard path
-    if ((hostname.includes('localhost') || hostname.includes('127.0.0.1')) && 
-        (path.includes('/dashboard') || path.includes('/analytics') || path === '/')) {
-      console.log('Analytics dashboard detected (localhost dashboard path):', url);
+    // For localhost, only treat as dashboard if explicit dashboard path
+    if ((hostname === 'localhost' || hostname === '127.0.0.1') && 
+        (path === '/' || path.includes('/dashboard'))) {
+      console.log('Dashboard localhost detected');
       return true;
     }
     
-    // Check for dashboard-specific paths
-    if (path.includes('/dashboard') || path.includes('/analytics')) {
-      console.log('Analytics dashboard detected (dashboard path):', url);
-      return true;
-    }
-    
-    // This is a client website URL, should be tracked
+    // This is likely a client website URL that should be tracked
     console.log('Client website URL detected, will track:', url);
     return false;
   } catch (e) {
-    // If URL parsing fails, fall back to simple string matching
     console.error('Error parsing URL:', e);
-    const isDashboard = url.includes('lovable') || 
-                        (url.includes('localhost') && url.includes('/dashboard')) ||
-                        url.includes('/analytics');
-    
-    console.log('URL parsing failed, dashboard detection fallback result:', isDashboard);
-    return isDashboard;
+    // Simpler fallback - only detect explicit dashboard keywords
+    return url.includes('/dashboard') || url.includes('/analytics');
   }
 };

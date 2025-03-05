@@ -10,8 +10,11 @@ export const shouldTrackPageView = (url: string = window.location.href) => {
   const currentUrl = url;
   const now = Date.now();
   
-  // Don't track analytics dashboard
-  if (isDashboardUrl(currentUrl)) {
+  // Check if tracking is being forced for testing purposes
+  const forceTracking = localStorage.getItem('force_tracking') === 'true';
+  
+  // Only check for dashboard if not forcing tracking
+  if (!forceTracking && isDashboardUrl(currentUrl)) {
     console.log('Not tracking page view for analytics dashboard');
     return false;
   }
@@ -31,20 +34,28 @@ export const shouldTrackPageView = (url: string = window.location.href) => {
 export const getTrackingStatus = () => {
   const supabaseIntegration = getSupabaseIntegrationStatus();
   
+  // Check for site ID, this is critical for tracking
+  const siteId = localStorage.getItem('claro_site_id');
+  if (!siteId) {
+    console.error('No site ID found in localStorage! This is required for tracking.');
+  } else {
+    console.log('Site ID found:', siteId);
+  }
+  
   return {
     lastPageViewUrl,
     lastPageViewTime,
     timeSinceLastTracking: lastPageViewTime ? `${Math.floor((Date.now() - lastPageViewTime) / 1000)}s ago` : 'Never tracked',
     trackingEnabled: !!localStorage.getItem('claro_site_id'),
     siteId: localStorage.getItem('claro_site_id'),
-    supbaseConfigured: supabaseIntegration
+    supbaseConfigured: supabaseIntegration,
+    forcingTracking: localStorage.getItem('force_tracking') === 'true'
   };
 };
 
 // Helper to check if Supabase is properly configured
 const getSupabaseIntegrationStatus = () => {
   try {
-    // Use the integration client directly
     console.log('Checking Supabase integration status with direct client');
     
     // Check if client has the needed methods
@@ -69,8 +80,8 @@ const getSupabaseIntegrationStatus = () => {
     }
     
     // Access project URL safely through our custom config
-    const projectUrl = supabase.config.url || 'Not available';
-    const hasKey = !!supabase.config.key;
+    const projectUrl = supabase.config?.url || 'Not available';
+    const hasKey = !!supabase.config?.key;
     
     return {
       hasConfiguredClient: clientConfigured,
@@ -101,10 +112,20 @@ export const testSupabaseConnection = async () => {
   try {
     console.log(`[Test ${testId}] Testing Supabase connection...`);
     
+    // Verify that site ID exists
+    const siteId = localStorage.getItem('claro_site_id');
+    if (!siteId) {
+      console.error(`[Test ${testId}] No site ID found in localStorage!`);
+      return { 
+        success: false, 
+        error: 'No site ID found. Please set a site ID first.',
+      };
+    }
+    
     // First test that we can reach the Supabase REST API
     try {
       // Use the supabase client URL directly from our config
-      const url = supabase.config.url;
+      const url = supabase.config?.url;
       if (!url) {
         throw new Error('Supabase URL is not available from client');
       }
@@ -112,7 +133,7 @@ export const testSupabaseConnection = async () => {
       console.log(`[Test ${testId}] Checking Supabase API at ${url}`);
       const response = await fetch(`${url}/rest/v1/`, {
         headers: {
-          'apikey': supabase.config.key || '',
+          'apikey': supabase.config?.key || '',
           'Content-Type': 'application/json'
         }
       });

@@ -1,3 +1,4 @@
+
 import { isDashboardUrl } from './urlUtils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,8 +7,10 @@ export const pingInterval = 15000; // 15 seconds for frequent updates
 let lastPingTime = 0;
 let pingCount = 0;
 let failedPingCount = 0;
+let successfulPingCount = 0;
 
 export const pingActiveSession = async () => {
+  // Verify site ID exists
   const siteId = localStorage.getItem('claro_site_id');
   if (!siteId) {
     console.log('No site ID found, cannot ping active session');
@@ -27,8 +30,11 @@ export const pingActiveSession = async () => {
     };
   }
   
-  // Skip pinging if this is a dashboard URL
-  if (isDashboardUrl(window.location.href)) {
+  // Check if tracking is forced for testing
+  const forceTracking = localStorage.getItem('force_tracking') === 'true';
+  
+  // Skip pinging if this is a dashboard URL (unless forcing)
+  if (!forceTracking && isDashboardUrl(window.location.href)) {
     console.log('Not pinging for analytics dashboard');
     return {
       success: true,
@@ -87,6 +93,7 @@ export const pingActiveSession = async () => {
       if (error) {
         console.error(`[Ping ${thisPingNum}] Direct Supabase insertion error:`, error);
         console.log(`[Ping ${thisPingNum}] Status: ${error.code || 'unknown'}, Duration: ${duration}ms`);
+        
         // Fall back to API endpoint if direct insertion fails
         console.log(`[Ping ${thisPingNum}] Falling back to API endpoint...`);
         failedPingCount++;
@@ -94,6 +101,7 @@ export const pingActiveSession = async () => {
       } else {
         console.log(`[Ping ${thisPingNum}] ✅ Direct Supabase insertion successful. Duration: ${duration}ms`, data);
         lastPingTime = Date.now();
+        successfulPingCount++;
         return {
           success: true,
           method: 'direct',
@@ -156,6 +164,7 @@ async function fallbackToApiEndpoint(pingData, pingNumber) {
     
     lastPingTime = Date.now();
     console.log(`[Ping ${pingNumber}] Session ping sent at ${new Date().toLocaleTimeString()}`);
+    successfulPingCount++;
     
     return {
       success: true,
@@ -177,9 +186,11 @@ async function fallbackToApiEndpoint(pingData, pingNumber) {
 export const getPingDiagnostics = () => {
   return {
     totalPings: pingCount,
+    successfulPings: successfulPingCount,
     failedPings: failedPingCount,
     lastPingTime: lastPingTime ? new Date(lastPingTime).toLocaleString() : 'Never',
     timeSinceLastPing: lastPingTime ? `${Math.floor((Date.now() - lastPingTime) / 1000)}s ago` : 'Never',
     pingInterval: `${pingInterval / 1000}s`,
+    forcingTracking: localStorage.getItem('force_tracking') === 'true'
   };
 };
