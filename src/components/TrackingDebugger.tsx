@@ -50,8 +50,8 @@ export const TrackingDebugger = () => {
       // Get configuration directly from the supabase client
       const clientDetails = {
         clientAvailable: !!supabase,
-        supabaseUrl: supabase.supabaseUrl || 'Not available',
-        hasApiKey: !!supabase.supabaseKey,
+        supabaseUrl: supabase.config.url || 'Not available',
+        hasApiKey: !!supabase.config.key,
       };
       
       console.log('Supabase client details:', clientDetails);

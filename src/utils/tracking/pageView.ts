@@ -67,9 +67,9 @@ const getSupabaseIntegrationStatus = () => {
       }
     }
     
-    // Access project URL safely
-    const projectUrl = supabase.supabaseUrl || 'Not available';
-    const hasKey = !!supabase.supabaseKey;
+    // Access project URL safely through our custom config
+    const projectUrl = supabase.config.url || 'Not available';
+    const hasKey = !!supabase.config.key;
     
     return {
       hasConfiguredClient: clientConfigured,
@@ -102,8 +102,8 @@ export const testSupabaseConnection = async () => {
     
     // First test that we can reach the Supabase REST API
     try {
-      // Use the supabase client URL directly
-      const url = supabase.supabaseUrl;
+      // Use the supabase client URL directly from our config
+      const url = supabase.config.url;
       if (!url) {
         throw new Error('Supabase URL is not available from client');
       }
@@ -111,7 +111,7 @@ export const testSupabaseConnection = async () => {
       console.log(`[Test ${testId}] Checking Supabase API at ${url}`);
       const response = await fetch(`${url}/rest/v1/`, {
         headers: {
-          'apikey': supabase.supabaseKey || '',
+          'apikey': supabase.config.key || '',
           'Content-Type': 'application/json'
         }
       });
