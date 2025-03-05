@@ -18,6 +18,7 @@ export const CurrentVisitors = ({
   autoRefresh = true 
 }: CurrentVisitorsProps) => {
   const [animate, setAnimate] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<string | null>(null);
   
   // Clean up site name to show just the domain
   const displayName = siteName && siteName !== 'example.com' && siteName !== '' ? 
@@ -27,10 +28,14 @@ export const CurrentVisitors = ({
   // Add more frequent animation effect to indicate live updates
   useEffect(() => {
     if (autoRefresh && isLive) {
+      // Set initial refresh time
+      setLastRefreshTime(new Date().toLocaleTimeString());
+      
       const interval = setInterval(() => {
         setAnimate(true);
+        setLastRefreshTime(new Date().toLocaleTimeString());
         setTimeout(() => setAnimate(false), 1000);
-      }, 5000); // Animate every 5 seconds to show it's live (more frequent)
+      }, 60000); // Animate every minute to show it's live
       
       return () => clearInterval(interval);
     }
@@ -63,6 +68,12 @@ export const CurrentVisitors = ({
         {displayName && (
           <div className="text-xs text-gray-500">
             on <span className="font-medium">{displayName}</span>
+          </div>
+        )}
+        
+        {isLive && lastRefreshTime && (
+          <div className="text-[10px] text-gray-400 mt-1">
+            Updated: {lastRefreshTime}
           </div>
         )}
       </div>

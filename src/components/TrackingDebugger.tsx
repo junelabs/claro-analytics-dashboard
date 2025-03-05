@@ -11,6 +11,21 @@ export const TrackingDebugger = () => {
   const [status, setStatus] = useState<any>(null);
   const [refreshCount, setRefreshCount] = useState(0);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen) {
+      refreshStatus();
+      
+      // Set up automatic refresh every minute
+      const intervalId = setInterval(() => {
+        refreshStatus();
+        setLastRefreshTime(new Date().toLocaleTimeString());
+      }, 60000); // 60000ms = 1 minute
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -149,6 +164,7 @@ export const TrackingDebugger = () => {
             <p>Last URL tracked: <span className="font-mono">{status?.lastPageViewUrl || 'None'}</span></p>
             <p>Last tracking: {status?.timeSinceLastTracking || 'Never'}</p>
             <p>Current URL is dashboard: {isDashboardUrl(window.location.href) ? 'Yes (no tracking)' : 'No (should track)'}</p>
+            {lastRefreshTime && <p>Last auto-refresh: {lastRefreshTime}</p>}
           </div>
         </div>
         
@@ -174,6 +190,7 @@ export const TrackingDebugger = () => {
             <Button size="sm" variant="outline" onClick={() => {
               refreshStatus();
               setRefreshCount(prev => prev + 1);
+              setLastRefreshTime(new Date().toLocaleTimeString());
             }}>
               Refresh Status
             </Button>

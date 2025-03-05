@@ -4,6 +4,7 @@ import { isDashboardUrl } from './urlUtils';
 // Ping interval for active sessions - reduced for more frequent updates
 export const pingInterval = 15000; // 15 seconds for frequent updates
 let lastPingTime = 0;
+let pingCount = 0;
 
 export const pingActiveSession = async () => {
   const siteId = localStorage.getItem('claro_site_id');
@@ -25,7 +26,8 @@ export const pingActiveSession = async () => {
   }
   
   try {
-    console.log('Sending session ping for site ID:', siteId);
+    pingCount++;
+    console.log(`Sending session ping #${pingCount} for site ID:`, siteId);
     const pingData = {
       siteId,
       url: window.location.href,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Layout } from '@/components/Layout';
@@ -51,67 +52,97 @@ const Index = () => {
     revenueSources: true,
     revenueTrends: true
   });
+  const [lastGraphRefresh, setLastGraphRefresh] = useState<string>(new Date().toLocaleTimeString());
+  const [lastVisitorRefresh, setLastVisitorRefresh] = useState<string>(new Date().toLocaleTimeString());
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const result = await getAnalyticsSummary(siteId);
-        if (result.success && result.data) {
-          setAnalyticsData(result.data);
-          
-          if (result.data.rawData && result.data.rawData.length > 0) {
-            try {
-              const url = result.data.rawData[0].url;
-              if (url && url.includes('://')) {
-                const urlObj = new URL(url);
-                setSiteName(urlObj.hostname);
-              } else if (url) {
-                setSiteName(url.split('/')[0]);
-              } else {
-                setSiteName('');
-              }
-            } catch (error) {
-              console.error("Error parsing URL:", error);
+  // Function to fetch data
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const result = await getAnalyticsSummary(siteId);
+      if (result.success && result.data) {
+        setAnalyticsData(result.data);
+        
+        if (result.data.rawData && result.data.rawData.length > 0) {
+          try {
+            const url = result.data.rawData[0].url;
+            if (url && url.includes('://')) {
+              const urlObj = new URL(url);
+              setSiteName(urlObj.hostname);
+            } else if (url) {
+              setSiteName(url.split('/')[0]);
+            } else {
               setSiteName('');
             }
-          } else {
+          } catch (error) {
+            console.error("Error parsing URL:", error);
             setSiteName('');
           }
-          
-          const activeVisitorCount = await getActiveVisitorCount(siteId);
-          if (activeVisitorCount.success) {
-            setCurrentVisitors(activeVisitorCount.data);
-            setIsLiveCount(true);
-          } else {
-            if (result.data.currentVisitors !== undefined) {
-              setCurrentVisitors(result.data.currentVisitors);
-              setIsLiveCount(false);
-            } else {
-              setCurrentVisitors(0);
-              setIsLiveCount(false);
-            }
-          }
+        } else {
+          setSiteName('');
         }
-      } catch (error) {
-        console.error('Error fetching analytics data:', error);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setLoading(false);
     }
-    
+  };
+
+  // Function to fetch active visitor count
+  const fetchActiveVisitors = async () => {
+    try {
+      const activeVisitorCount = await getActiveVisitorCount(siteId);
+      if (activeVisitorCount.success) {
+        setCurrentVisitors(activeVisitorCount.data);
+        setIsLiveCount(true);
+        setLastVisitorRefresh(new Date().toLocaleTimeString());
+      } else {
+        if (analyticsData?.currentVisitors !== undefined) {
+          setCurrentVisitors(analyticsData.currentVisitors);
+          setIsLiveCount(false);
+        } else {
+          setCurrentVisitors(0);
+          setIsLiveCount(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching active visitor count:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Initial data fetch
     fetchData();
+    fetchActiveVisitors();
     
-    if (liveUpdateInterval) clearInterval(liveUpdateInterval);
+    // Set up hourly refresh for graphs
+    const graphIntervalId = setInterval(() => {
+      console.log('Hourly refresh: Updating dashboard graphs');
+      fetchData();
+      setLastGraphRefresh(new Date().toLocaleTimeString());
+      toast.info('Dashboard data refreshed', { 
+        description: 'Graphs and analytics have been updated.' 
+      });
+    }, 3600000); // 3,600,000ms = 1 hour
     
-    const intervalId = setInterval(fetchData, 5000);
-    setLiveUpdateInterval(intervalId);
+    // Set up minute refresh for active visitors
+    const visitorIntervalId = setInterval(() => {
+      console.log('Minute refresh: Updating active visitor count');
+      fetchActiveVisitors();
+    }, 60000); // 60,000ms = 1 minute
     
     return () => {
+      clearInterval(graphIntervalId);
+      clearInterval(visitorIntervalId);
       if (liveUpdateInterval) clearInterval(liveUpdateInterval);
-      clearInterval(intervalId);
     };
-  }, [siteId, dateRange]);
+  }, [siteId]);
+
+  useEffect(() => {
+    // Refresh data when date range changes
+    fetchData();
+  }, [dateRange]);
 
   const handleFilterClick = () => {
     toast('Filter functionality coming soon!', {
@@ -173,6 +204,13 @@ const Index = () => {
     toast.info(`${checked ? 'Showing' : 'Hiding'} ${id.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
   };
 
+  const manualRefresh = () => {
+    fetchData();
+    fetchActiveVisitors();
+    setLastGraphRefresh(new Date().toLocaleTimeString());
+    toast.success('Dashboard data manually refreshed');
+  };
+
   return (
     <Layout>
       <div className="flex flex-col space-y-8">
@@ -220,6 +258,20 @@ const Index = () => {
               />
             </div>
             <div className="flex items-center space-x-3">
+              <div className="text-xs text-gray-500">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={manualRefresh} 
+                  className="text-xs flex items-center"
+                >
+                  <span className="mr-1">↻</span> Refresh
+                </Button>
+                <div className="text-[10px] text-right">
+                  <div>Graphs: {lastGraphRefresh}</div>
+                  <div>Visitors: {lastVisitorRefresh}</div>
+                </div>
+              </div>
               <FilterButton 
                 onClick={handleFilterClick} 
                 graphFilters={graphFilters}

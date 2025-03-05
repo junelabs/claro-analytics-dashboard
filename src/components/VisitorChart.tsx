@@ -25,6 +25,7 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
   const [loading, setLoading] = useState(true);
   const [animatedData, setAnimatedData] = useState<ChartData[]>([]);
   const [isMockData, setIsMockData] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<string>(new Date().toLocaleTimeString());
 
   useEffect(() => {
     // Process real analytics data if available, otherwise use mock data
@@ -77,6 +78,7 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
       
       setData(newData);
       setLoading(false);
+      setLastRefresh(new Date().toLocaleTimeString());
     }, 500);
   }, [timeRange, analyticsData]);
 
@@ -151,12 +153,17 @@ export const VisitorChart = ({ timeRange, analyticsData }: VisitorChartProps) =>
 
   return (
     <div className="chart-container animate-fade-in h-[300px]">
-      {isMockData && (
-        <div className="text-xs text-gray-500 mb-2 flex items-center">
-          <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>
-          Demo data - Add tracking script to your website to see real data
+      <div className="flex justify-between items-center mb-2">
+        {isMockData && (
+          <div className="text-xs text-gray-500 flex items-center">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>
+            Demo data - Add tracking script to your website to see real data
+          </div>
+        )}
+        <div className="text-xs text-gray-400 ml-auto">
+          Last updated: {lastRefresh}
         </div>
-      )}
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={animatedData.length > 0 ? animatedData : data}
