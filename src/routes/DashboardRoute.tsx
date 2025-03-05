@@ -36,6 +36,7 @@ const DashboardRoute = () => {
     const checkAuth = async () => {
       if (!loading) {
         console.log('Auth check completed. User authenticated:', !!user);
+        console.log('Current domain:', window.location.hostname);
         setAuthChecked(true);
       }
     };
