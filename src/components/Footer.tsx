@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Mail } from 'lucide-react';
+import { Twitter, Mail, Circle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -11,7 +11,10 @@ export const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8">
           <div>
-            <h3 className="font-semibold text-gray-800 mb-4">Claro</h3>
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+              <Circle className="h-6 w-6 text-claro-purple mr-2 fill-claro-purple" />
+              Claro
+            </h3>
             <p className="text-gray-600 text-sm">
               Simple analytics for ecommerce businesses. Understand your customers without the complexity.
             </p>
