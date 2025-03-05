@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle, Star, Users, BarChart3, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle, Star, Users, BarChart3, Zap, Store, ShoppingCart, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigation } from '@/components/Navigation';
 import { Layout } from '@/components/Layout';
@@ -94,51 +94,67 @@ const LandingPage = () => {
         </div>
         
         <div className="bg-white rounded-xl shadow-lg p-12 mb-24">
-          <h2 className="text-3xl font-bold text-center mb-12">Trusted by ecommerce leaders</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Who is Claro for?</h2>
           
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="border border-gray-100 rounded-lg p-6">
-              <div className="flex space-x-1 mb-4">
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border border-gray-100 rounded-lg p-6 hover:border-indigo-200 transition-all duration-300">
+              <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                <Store className="h-7 w-7 text-indigo-600" />
               </div>
-              <p className="text-gray-600 italic mb-4">
-                "This platform transformed how we understand our customers. The insights we've gained have directly increased our conversion rate by 24%."
+              <h3 className="text-xl font-semibold mb-3">Small Online Businesses</h3>
+              <p className="text-gray-600">
+                Perfect for small online shops that need simple, actionable analytics without the complexity of enterprise solutions.
               </p>
-              <div className="flex items-center">
-                <div className="rounded-full bg-indigo-100 w-10 h-10 flex items-center justify-center mr-3">
-                  <span className="font-bold text-indigo-600">JD</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Jane Doe</p>
-                  <p className="text-sm text-gray-500">CEO, FashionStore</p>
-                </div>
-              </div>
+              <ul className="mt-4 space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Easy to implement without IT support</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Affordable pricing for growing businesses</span>
+                </li>
+              </ul>
             </div>
             
-            <div className="border border-gray-100 rounded-lg p-6">
-              <div className="flex space-x-1 mb-4">
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+            <div className="border border-gray-100 rounded-lg p-6 hover:border-indigo-200 transition-all duration-300">
+              <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                <ShoppingCart className="h-7 w-7 text-indigo-600" />
               </div>
-              <p className="text-gray-600 italic mb-4">
-                "The AI-powered recommendations have been game-changing for our marketing strategy. We've seen a 40% increase in repeat customers."
+              <h3 className="text-xl font-semibold mb-3">Ecommerce Marketers</h3>
+              <p className="text-gray-600">
+                Designed for marketing teams who need to optimize campaigns and understand customer behavior across channels.
               </p>
-              <div className="flex items-center">
-                <div className="rounded-full bg-indigo-100 w-10 h-10 flex items-center justify-center mr-3">
-                  <span className="font-bold text-indigo-600">MS</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Mark Smith</p>
-                  <p className="text-sm text-gray-500">Marketing Director, TechGadgets</p>
-                </div>
+              <ul className="mt-4 space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Campaign performance tracking</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Customer journey visualization</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="border border-gray-100 rounded-lg p-6 hover:border-indigo-200 transition-all duration-300">
+              <div className="bg-indigo-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                <TrendingUp className="h-7 w-7 text-indigo-600" />
               </div>
+              <h3 className="text-xl font-semibold mb-3">Growing D2C Brands</h3>
+              <p className="text-gray-600">
+                Ideal for direct-to-consumer brands looking to scale operations with data-driven decision making.
+              </p>
+              <ul className="mt-4 space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Revenue optimization insights</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                  <span className="text-gray-600">Customer retention analysis</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
