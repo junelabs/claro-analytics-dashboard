@@ -20,7 +20,7 @@ export const CurrentVisitors = ({
   const [animate, setAnimate] = useState(false);
   
   // Clean up site name to show just the domain
-  const displayName = siteName && siteName !== 'example.com' ? 
+  const displayName = siteName && siteName !== 'example.com' && siteName !== '' ? 
     (siteName.startsWith('http') ? new URL(siteName).hostname : siteName) : 
     '';
   

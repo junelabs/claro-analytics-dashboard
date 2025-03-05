@@ -24,3 +24,14 @@ export const shouldTrackPageView = (url: string = window.location.href) => {
   lastPageViewTime = now;
   return true;
 };
+
+// Export this helper to check if tracking is working
+export const getTrackingStatus = () => {
+  return {
+    lastPageViewUrl,
+    lastPageViewTime,
+    timeSinceLastTracking: lastPageViewTime ? `${Math.floor((Date.now() - lastPageViewTime) / 1000)}s ago` : 'Never tracked',
+    trackingEnabled: !!localStorage.getItem('claro_site_id'),
+    siteId: localStorage.getItem('claro_site_id')
+  };
+};

@@ -12,6 +12,15 @@ export const initializePingTracking = () => {
   
   if (!isDashboardUrl(window.location.href)) {
     console.log('This is a client site, initializing tracking');
+    
+    // Get or create site ID
+    const siteId = localStorage.getItem('claro_site_id');
+    if (!siteId) {
+      console.error('No site ID found in localStorage. Tracking may not work correctly.');
+    } else {
+      console.log('Using site ID for tracking:', siteId);
+    }
+    
     pingActiveSession(); // Initial ping
     
     // More frequent pinging for better real-time data
@@ -36,7 +45,7 @@ export const initializePingTracking = () => {
       }, { passive: true });
     });
     
-    // Add initial page view tracking with better logging
+    // Add initial page view tracking with better logging and a small delay
     setTimeout(() => {
       if (shouldTrackPageView()) {
         console.log('Tracking initial page view');
@@ -54,6 +63,8 @@ export const initializePingTracking = () => {
             eventType: 'page_view'
           };
           
+          console.log('Sending page view data:', pageViewData);
+          
           fetch('/api/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -61,15 +72,17 @@ export const initializePingTracking = () => {
           })
           .then(response => {
             console.log('Initial page view tracked, response status:', response.status);
-            return response.text();
+            return response.json().catch(() => response.text());
           })
-          .then(text => console.log('Response body:', text))
+          .then(data => console.log('Response data:', data))
           .catch(err => console.error('Error tracking initial page view:', err));
         } else {
           console.error('No site ID found, cannot track page view');
         }
+      } else {
+        console.log('Skipping initial page view tracking due to conditions');
       }
-    }, 1000);
+    }, 1500); // Add a small delay to ensure everything is loaded
     
     return () => {
       clearInterval(pingIntervalId);

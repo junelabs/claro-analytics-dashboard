@@ -1,4 +1,3 @@
-
 import { handleTrackingRequest } from "../lib/supabase";
 import { getTrackingScript } from "../lib/tracker";
 import { isDuplicateRequest } from "./tracking";
@@ -74,14 +73,17 @@ export const apiRouteHandler = async (request: Request) => {
     try {
       const clone = request.clone();
       requestData = await clone.json();
+      console.log('Received tracking data:', requestData);
     } catch (e) {
       console.error('Error parsing request data:', e);
       requestData = {};
     }
     
     if (!requestData.isPing && !requestData.eventType?.includes('ping')) {
-      // Check for duplicate requests only for page views
-      if (isDuplicateRequest(request.url)) {
+      // Relaxed duplicate check for development and testing
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('Skipping duplicate check for localhost');
+      } else if (isDuplicateRequest(request.url)) {
         console.log('Skipping duplicate tracking request');
         return new Response(JSON.stringify({ success: true, skipped: 'duplicate' }), {
           headers: {
