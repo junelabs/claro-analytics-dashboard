@@ -3,6 +3,9 @@ import React, { useEffect } from 'react';
 
 const TallyForm = () => {
   useEffect(() => {
+    // Scroll to the top of the page when component mounts
+    window.scrollTo(0, 0);
+    
     // Create and load Tally script
     const script = document.createElement('script');
     script.src = 'https://tally.so/widgets/embed.js';
