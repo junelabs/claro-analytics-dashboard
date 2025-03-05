@@ -22,7 +22,6 @@ export const pingActiveSession = async () => {
   
   const now = Date.now();
   if (now - lastPingTime < pingInterval) {
-    console.log('Skipping ping - too soon since last ping');
     return {
       success: true,
       skipped: true,
@@ -35,7 +34,6 @@ export const pingActiveSession = async () => {
   
   // Skip pinging if this is a dashboard URL (unless forcing)
   if (!forceTracking && isDashboardUrl(window.location.href)) {
-    console.log('Not pinging for analytics dashboard');
     return {
       success: true,
       skipped: true,
@@ -46,7 +44,6 @@ export const pingActiveSession = async () => {
   try {
     pingCount++;
     const thisPingNum = pingCount;
-    console.log(`[Ping ${thisPingNum}] Sending session ping for site ID: ${siteId}`);
     
     const pingData = {
       siteId,
@@ -64,7 +61,6 @@ export const pingActiveSession = async () => {
     
     // Verify Supabase client is available before trying to use it
     if (!supabase || typeof supabase.from !== 'function') {
-      console.error(`[Ping ${thisPingNum}] Supabase client not properly initialized`);
       failedPingCount++;
       
       // Fall back to API endpoint
@@ -73,9 +69,8 @@ export const pingActiveSession = async () => {
     
     // First try direct Supabase insertion for more reliable tracking
     try {
-      console.log(`[Ping ${thisPingNum}] Attempting direct Supabase insertion...`);
       const startTime = Date.now();
-      const { data, error, status } = await supabase.from('page_views').insert({
+      const { data, error } = await supabase.from('page_views').insert({
         site_id: siteId,
         url: window.location.href,
         referrer: document.referrer,
@@ -91,15 +86,9 @@ export const pingActiveSession = async () => {
       const duration = endTime - startTime;
       
       if (error) {
-        console.error(`[Ping ${thisPingNum}] Direct Supabase insertion error:`, error);
-        console.log(`[Ping ${thisPingNum}] Status: ${error.code || 'unknown'}, Duration: ${duration}ms`);
-        
-        // Fall back to API endpoint if direct insertion fails
-        console.log(`[Ping ${thisPingNum}] Falling back to API endpoint...`);
         failedPingCount++;
         return await fallbackToApiEndpoint(pingData, thisPingNum);
       } else {
-        console.log(`[Ping ${thisPingNum}] ✅ Direct Supabase insertion successful. Duration: ${duration}ms`, data);
         lastPingTime = Date.now();
         successfulPingCount++;
         return {
@@ -110,13 +99,10 @@ export const pingActiveSession = async () => {
         };
       }
     } catch (supabaseError) {
-      console.error(`[Ping ${thisPingNum}] Error with direct Supabase insertion:`, supabaseError);
-      console.log(`[Ping ${thisPingNum}] Falling back to API endpoint...`);
       failedPingCount++;
       return await fallbackToApiEndpoint(pingData, thisPingNum);
     }
   } catch (error) {
-    console.error('Error pinging active session:', error);
     failedPingCount++;
     
     // Try one last fallback method - image pixel
@@ -124,7 +110,6 @@ export const pingActiveSession = async () => {
       const img = new Image();
       const siteId = localStorage.getItem('claro_site_id') || 'unknown';
       img.src = `/api/track?fallback=true&siteId=${encodeURIComponent(siteId)}&url=${encodeURIComponent(window.location.href)}&time=${Date.now()}`;
-      console.log('Attempting image pixel fallback for tracking');
       return {
         success: false,
         fallbackAttempted: true,
@@ -132,7 +117,6 @@ export const pingActiveSession = async () => {
         method: 'pixel'
       };
     } catch (e) {
-      console.error('All tracking methods failed', e);
       return {
         success: false,
         allMethodsFailed: true,
@@ -160,10 +144,8 @@ async function fallbackToApiEndpoint(pingData, pingNumber) {
     }
     
     const result = await response.json();
-    console.log(`[Ping ${pingNumber}] Session ping API response (${duration}ms):`, result);
     
     lastPingTime = Date.now();
-    console.log(`[Ping ${pingNumber}] Session ping sent at ${new Date().toLocaleTimeString()}`);
     successfulPingCount++;
     
     return {
@@ -173,7 +155,6 @@ async function fallbackToApiEndpoint(pingData, pingNumber) {
       duration
     };
   } catch (apiError) {
-    console.error(`[Ping ${pingNumber}] API endpoint fallback failed:`, apiError);
     return {
       success: false,
       error: String(apiError),

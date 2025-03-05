@@ -15,13 +15,11 @@ export const isDashboardUrl = (url: string): boolean => {
     // More precise detection of dashboard URLs
     // Check for dashboard in the path
     if (path.includes('/dashboard')) {
-      console.log('Dashboard path detected:', path);
       return true;
     }
     
     // Check for analytics in the path
     if (path.includes('/analytics')) {
-      console.log('Analytics path detected:', path);
       return true;
     }
     
@@ -29,26 +27,22 @@ export const isDashboardUrl = (url: string): boolean => {
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
         hostname.includes('lovableproject.com')) {
-      console.log('Dashboard domain detected:', hostname);
       return true;
     }
     
     // Localhost detection - only treat as dashboard if explicit dashboard path
     if ((hostname === 'localhost' || hostname === '127.0.0.1') && 
         (path === '/' || path.includes('/dashboard'))) {
-      console.log('Dashboard localhost detected');
       return true;
     }
     
     // Additional check for preview URLs
     if (hostname.includes('preview') && 
         (path === '/' || path.includes('/dashboard'))) {
-      console.log('Preview dashboard URL detected');
       return true;
     }
     
     // This is likely a client website URL that should be tracked
-    console.log('Client website URL detected, will track:', url);
     return false;
   } catch (e) {
     console.error('Error parsing URL:', e);
