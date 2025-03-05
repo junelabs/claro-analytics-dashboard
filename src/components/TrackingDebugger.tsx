@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getTrackingStatus } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
@@ -25,10 +24,9 @@ export const TrackingDebugger = () => {
   const testDirectSupabaseConnection = async () => {
     setTestResult("Testing direct Supabase connection...");
     try {
-      // Log the client details
+      // Log the client details - but don't access protected properties
       console.log('Supabase client:', 
-        supabase ? 'Available' : 'Not available', 
-        'URL:', supabase.supabaseUrl
+        supabase ? 'Available' : 'Not available'
       );
       
       // Test direct connection to Supabase
@@ -158,9 +156,6 @@ export const TrackingDebugger = () => {
           <div className="text-xs space-y-1">
             <p>Client available: <span className={status?.supbaseConfigured?.hasConfiguredClient ? 'text-green-600' : 'text-red-600'}>
               {status?.supbaseConfigured?.hasConfiguredClient ? 'Yes' : 'No'}
-            </span></p>
-            <p>Supabase URL: <span className="font-mono text-xs break-all">
-              {status?.supbaseConfigured?.integrationDetails?.supabaseUrl || 'Not available'}
             </span></p>
             <p>Table accessible: <span className={status?.supbaseConfigured?.tableAccessible ? 'text-green-600' : 'text-red-600'}>
               {status?.supbaseConfigured?.tableAccessible ? 'Yes' : 'No'}

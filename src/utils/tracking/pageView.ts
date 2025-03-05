@@ -72,8 +72,8 @@ const getSupabaseIntegrationStatus = () => {
       integrationConfigured: clientConfigured,
       tableAccessible: tableAccessWorks,
       integrationDetails: {
-        clientAvailable: !!supabase,
-        supabaseUrl: supabase.supabaseUrl,
+        clientAvailable: !!supabase
+        // Remove access to protected property
       }
     };
   } catch (e) {
