@@ -20,9 +20,9 @@ export const CurrentVisitors = ({
   const [animate, setAnimate] = useState(false);
   
   // Clean up site name to show just the domain
-  const displayName = siteName ? (
-    siteName.startsWith('http') ? new URL(siteName).hostname : siteName
-  ) : 'Your Website';
+  const displayName = siteName && siteName !== 'example.com' ? 
+    (siteName.startsWith('http') ? new URL(siteName).hostname : siteName) : 
+    '';
   
   // Add more frequent animation effect to indicate live updates
   useEffect(() => {
@@ -60,9 +60,11 @@ export const CurrentVisitors = ({
           )}
         </div>
         
-        <div className="text-xs text-gray-500">
-          on <span className="font-medium">{displayName}</span>
-        </div>
+        {displayName && (
+          <div className="text-xs text-gray-500">
+            on <span className="font-medium">{displayName}</span>
+          </div>
+        )}
       </div>
     </div>
   );

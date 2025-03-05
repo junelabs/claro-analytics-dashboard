@@ -15,7 +15,7 @@ export const initializePingTracking = () => {
     pingActiveSession(); // Initial ping
     
     // More frequent pinging for better real-time data
-    setInterval(pingActiveSession, pingInterval);
+    const pingIntervalId = setInterval(pingActiveSession, pingInterval);
     
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && !isDashboardUrl(window.location.href)) {
@@ -37,31 +37,43 @@ export const initializePingTracking = () => {
     });
     
     // Add initial page view tracking with better logging
-    if (shouldTrackPageView()) {
-      console.log('Tracking initial page view');
-      const siteId = localStorage.getItem('claro_site_id');
-      if (siteId) {
-        const pageViewData = {
-          siteId,
-          url: window.location.href,
-          referrer: document.referrer,
-          userAgent: navigator.userAgent,
-          screenWidth: window.innerWidth,
-          screenHeight: window.innerHeight,
-          pageTitle: document.title,
-          timestamp: new Date().toISOString(),
-          eventType: 'page_view'
-        };
-        
-        fetch('/api/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pageViewData)
-        })
-        .then(() => console.log('Initial page view tracked successfully'))
-        .catch(err => console.error('Error tracking initial page view:', err));
+    setTimeout(() => {
+      if (shouldTrackPageView()) {
+        console.log('Tracking initial page view');
+        const siteId = localStorage.getItem('claro_site_id');
+        if (siteId) {
+          const pageViewData = {
+            siteId,
+            url: window.location.href,
+            referrer: document.referrer,
+            userAgent: navigator.userAgent,
+            screenWidth: window.innerWidth,
+            screenHeight: window.innerHeight,
+            pageTitle: document.title,
+            timestamp: new Date().toISOString(),
+            eventType: 'page_view'
+          };
+          
+          fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pageViewData)
+          })
+          .then(response => {
+            console.log('Initial page view tracked, response status:', response.status);
+            return response.text();
+          })
+          .then(text => console.log('Response body:', text))
+          .catch(err => console.error('Error tracking initial page view:', err));
+        } else {
+          console.error('No site ID found, cannot track page view');
+        }
       }
-    }
+    }, 1000);
+    
+    return () => {
+      clearInterval(pingIntervalId);
+    };
   } else {
     console.log('This is the dashboard, not initializing client tracking');
   }

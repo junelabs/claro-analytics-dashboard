@@ -68,14 +68,14 @@ const Index = () => {
               } else if (url) {
                 setSiteName(url.split('/')[0]);
               } else {
-                setSiteName('example.com');
+                setSiteName('');
               }
             } catch (error) {
               console.error("Error parsing URL:", error);
-              setSiteName('example.com');
+              setSiteName('');
             }
           } else {
-            setSiteName('example.com');
+            setSiteName('');
           }
           
           const activeVisitorCount = await getActiveVisitorCount(siteId);
