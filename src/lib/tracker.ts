@@ -1,3 +1,4 @@
+
 // This file will be the source for the tracker.js script
 // that gets served to client websites
 
@@ -38,11 +39,12 @@ export const trackerScript = `
     const hostname = window.location.hostname.toLowerCase();
     const path = window.location.pathname.toLowerCase();
     
-    // Check for Lovable domains which host the analytics dashboard
+    // Check for domains which host the analytics dashboard
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
-        hostname.includes('lovableproject.com')) {
-      debug.log('Lovable domain detected, likely the analytics dashboard');
+        hostname.includes('lovableproject.com') ||
+        hostname.includes('claroinsights.com')) {
+      debug.log('Analytics dashboard domain detected, skipping tracking');
       return true;
     }
     

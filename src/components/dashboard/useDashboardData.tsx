@@ -101,7 +101,11 @@ export const useDashboardData = (siteId: string) => {
 
   const copyTrackingScript = () => {
     try {
-      const endpoint = window.location.origin;
+      // Use current origin or claroinsights.com if in production
+      const endpoint = window.location.hostname === 'claroinsights.com' 
+        ? 'https://claroinsights.com' 
+        : window.location.origin;
+      
       const script = `<script src="${endpoint}/tracker.js" data-site-id="${siteId}" defer></script>`;
       
       navigator.clipboard.writeText(script);
