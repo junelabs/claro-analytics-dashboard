@@ -1,3 +1,4 @@
+
 // Tracking utility functions
 
 // Track already processed URLs to prevent duplicate page views
@@ -69,8 +70,8 @@ export const isDashboardUrl = (url: string): boolean => {
   }
 };
 
-// Ping interval for active sessions
-export const pingInterval = 30000; // Change to 30 seconds for more frequent updates
+// Ping interval for active sessions - reduce to make updates more frequent
+export const pingInterval = 15000; // Change to 15 seconds for more frequent updates
 let lastPingTime = 0;
 let lastPageViewUrl = '';
 let lastPageViewTime = 0;
@@ -146,6 +147,10 @@ export const shouldTrackPageView = () => {
 // Enhanced initialize tracking function with more frequent updates
 export const initializePingTracking = () => {
   console.log('Initializing ping tracking with current URL:', window.location.href);
+  
+  // Force enable tracking for testing
+  localStorage.setItem('enable_local_tracking', 'true');
+  
   if (!isDashboardUrl(window.location.href)) {
     console.log('This is a client site, initializing tracking');
     pingActiveSession(); // Initial ping

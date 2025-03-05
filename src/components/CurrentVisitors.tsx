@@ -24,13 +24,13 @@ export const CurrentVisitors = ({
     siteName.startsWith('http') ? new URL(siteName).hostname : siteName
   ) : 'Your Website';
   
-  // Add subtle animation effect to indicate live updates
+  // Add more frequent animation effect to indicate live updates
   useEffect(() => {
     if (autoRefresh && isLive) {
       const interval = setInterval(() => {
         setAnimate(true);
         setTimeout(() => setAnimate(false), 1000);
-      }, 10000); // Animate every 10 seconds to show it's live
+      }, 5000); // Animate every 5 seconds to show it's live (more frequent)
       
       return () => clearInterval(interval);
     }
@@ -38,9 +38,9 @@ export const CurrentVisitors = ({
   
   return (
     <div className={cn(
-      "flex items-center px-4 py-2 rounded-lg transition-all", 
+      "flex items-center px-4 py-2 rounded-lg transition-all duration-300", 
       "bg-green-50/70 border border-green-100/70 shadow-sm",
-      animate ? "bg-green-100/80" : "",
+      animate ? "bg-green-100 scale-105" : "",
       className
     )}>
       <div className="flex flex-col">

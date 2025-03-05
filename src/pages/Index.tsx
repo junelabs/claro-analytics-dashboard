@@ -103,7 +103,7 @@ const Index = () => {
     
     if (liveUpdateInterval) clearInterval(liveUpdateInterval);
     
-    const intervalId = setInterval(fetchData, 10000);
+    const intervalId = setInterval(fetchData, 5000);
     setLiveUpdateInterval(intervalId);
     
     return () => {
