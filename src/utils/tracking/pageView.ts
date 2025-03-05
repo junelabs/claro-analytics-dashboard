@@ -1,3 +1,4 @@
+
 import { isDashboardUrl } from './urlUtils';
 import { supabase } from '@/integrations/supabase/client';
 
