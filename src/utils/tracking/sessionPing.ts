@@ -87,7 +87,7 @@ export const pingActiveSession = async () => {
       
       if (error) {
         console.error(`[Ping ${thisPingNum}] Direct Supabase insertion error:`, error);
-        console.log(`[Ping ${thisPingNum}] Status code: ${status}, Duration: ${duration}ms`);
+        console.log(`[Ping ${thisPingNum}] Status: ${error.code || 'unknown'}, Duration: ${duration}ms`);
         // Fall back to API endpoint if direct insertion fails
         console.log(`[Ping ${thisPingNum}] Falling back to API endpoint...`);
         failedPingCount++;

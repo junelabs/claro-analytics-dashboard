@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getTrackingStatus, testSupabaseConnection } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
@@ -52,7 +53,6 @@ export const TrackingDebugger = () => {
         clientAvailable: !!supabase,
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'Not available',
         hasApiKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-        // Removed functionsUrl since it's a protected property
       };
       
       console.log('Supabase client details:', clientDetails);
