@@ -11,19 +11,10 @@ const DashboardRoute = () => {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
   
-  // Safely detect if we're on the dashboard subdomain
-  const hostname = window.location.hostname || '';
-  const isDashboardDomain = hostname.startsWith('dashboard.') || hostname === 'dashboard.claroinsights.com';
-  
-  // Check if we're in production environment
-  const isProd = hostname.includes('claroinsights.com') || 
-                 hostname === 'www.claroinsights.com' ||
-                 hostname === 'claroinsights.com';
-  
-  // For development environment detection
-  const isDev = hostname.includes('localhost') || 
-                hostname.includes('127.0.0.1') ||
-                hostname.includes('lovableproject.com');
+  // Detect if we're on the dashboard subdomain
+  const isDashboardDomain = window.location.hostname === 'dashboard.claroinsights.com';
+  const isProd = window.location.hostname === 'claroinsights.com' || 
+                 window.location.hostname === 'www.claroinsights.com';
   
   useEffect(() => {
     // If there's an error in the URL (like after a failed authentication)
@@ -47,16 +38,15 @@ const DashboardRoute = () => {
     const checkAuth = async () => {
       if (!loading) {
         console.log('Auth check completed. User authenticated:', !!user);
-        console.log('Current domain:', hostname);
+        console.log('Current domain:', window.location.hostname);
         console.log('Is dashboard domain:', isDashboardDomain);
         console.log('Is production:', isProd);
-        console.log('Is development:', isDev);
         setAuthChecked(true);
       }
     };
     
     checkAuth();
-  }, [loading, user, isDashboardDomain, isProd, isDev, hostname]);
+  }, [loading, user, isDashboardDomain, isProd]);
   
   // Show loading state while authentication status is being determined
   if (loading || !authChecked) {
@@ -71,45 +61,21 @@ const DashboardRoute = () => {
   // If no user is authenticated after checking, redirect to login
   if (!user && !session) {
     console.log('No authenticated user found, redirecting to login');
-    
     // If on dashboard subdomain, redirect to main domain login
     if (isDashboardDomain) {
       console.log('Redirecting from dashboard subdomain to main domain login');
-      try {
-        // For production, use the specific domain
-        if (isProd) {
-          window.location.href = 'https://claroinsights.com/auth/login';
-        } 
-        // For local development, just replace 'dashboard.' prefix
-        else if (isDev) {
-          const loginUrl = `${window.location.protocol}//${hostname.replace('dashboard.', '')}/auth/login`;
-          console.log('Redirecting to login URL:', loginUrl);
-          window.location.href = loginUrl;
-        }
-        // Fallback for other environments
-        else {
-          window.location.href = '/auth/login';
-        }
-      } catch (error) {
-        console.error('Error during redirect:', error);
-        // Fallback if the redirect fails
-        return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
-      }
+      window.location.href = isProd 
+        ? 'https://claroinsights.com/auth/login' 
+        : `${window.location.origin.replace('dashboard.', '')}/auth/login`;
       return null;
     }
-    
     return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
   }
   
   // If we're on the main domain but should be on dashboard subdomain in production
   if (isProd && !isDashboardDomain && (user || session)) {
     console.log('User is authenticated but on main domain, redirecting to dashboard subdomain');
-    try {
-      window.location.href = 'https://dashboard.claroinsights.com';
-    } catch (error) {
-      console.error('Error during redirect to dashboard domain:', error);
-      // Continue rendering the dashboard as fallback
-    }
+    window.location.href = 'https://dashboard.claroinsights.com';
     return null;
   }
   
