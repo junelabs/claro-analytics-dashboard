@@ -18,6 +18,7 @@ import { AuthProvider } from "./context/AuthContext";
 import DashboardRoute from "./routes/DashboardRoute";
 import { setupApiInterception } from "./utils/apiHandler";
 import { initializePingTracking } from "./utils/tracking";
+import { ScrollToTop } from "./utils/ScrollToTop";
 
 // Set up the query client for React Query
 const queryClient = new QueryClient({
@@ -39,6 +40,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <TooltipProvider>
           <Toaster />
           <Sonner />
