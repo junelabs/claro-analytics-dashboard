@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
 import FAQs from "./pages/FAQs";
 import Pricing from "./pages/Pricing";
+import TallyForm from "./pages/TallyForm";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ResetPassword from "./pages/auth/ResetPassword";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/faqs" element={<FAQs />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/beta-signup" element={<TallyForm />} />
             
             {/* Auth routes */}
             <Route path="/auth/login" element={<Login />} />
