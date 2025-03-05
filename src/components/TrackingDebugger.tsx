@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getTrackingStatus } from '@/utils/tracking/pageView';
+import { getTrackingStatus, testSupabaseConnection } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ export const TrackingDebugger = () => {
   const [refreshCount, setRefreshCount] = useState(0);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState<string>('');
+  const [connectionDetails, setConnectionDetails] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,26 +41,33 @@ export const TrackingDebugger = () => {
   const testDirectSupabaseConnection = async () => {
     setTestResult("Testing direct Supabase connection...");
     try {
-      // Log the client details - but don't access protected properties
-      console.log('Supabase client:', 
-        supabase ? 'Available' : 'Not available'
-      );
+      // Log the client details
+      console.log('Supabase client:', supabase ? 'Available' : 'Not available');
+      
+      // Get project information
+      const connectionInfo = await fetch('https://fnpmaffptlkwjioccifp.supabase.co/rest/v1/', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucG1hZmZwdGxrd2ppb2NjaWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4NTc0MTksImV4cCI6MjA1NjQzMzQxOX0.c6IqlWlVDK0aUsT84b00t1zIj3DKI4i0bMef3NuMnq0'
+        }
+      }).then(res => res.json()).catch(err => ({ error: err.message }));
+      
+      setConnectionDetails(JSON.stringify(connectionInfo, null, 2));
       
       // Test direct connection to Supabase
-      const response = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
+      const response = await testSupabaseConnection();
       
-      if (response.error) {
-        setTestResult(`Direct connection error: ${response.error.message}`);
-        toast.error(`Error connecting to Supabase: ${response.error.message}`);
+      if (!response.success) {
+        setTestResult(`Connection error: ${JSON.stringify(response.error)}`);
+        toast.error(`Error connecting to Supabase: ${JSON.stringify(response.error)}`);
         console.error('Connection test response error:', response.error);
       } else {
-        setTestResult(`Direct connection successful! Table exists and is accessible.`);
+        setTestResult(`Connection successful! Table exists and is accessible.`);
         toast.success('Successfully connected to Supabase page_views table!');
         console.log('Connection test successful:', response);
       }
     } catch (error) {
       console.error('Error testing connection:', error);
-      setTestResult(`Direct connection exception: ${error}`);
+      setTestResult(`Connection exception: ${error}`);
       toast.error(`Error testing connection: ${error}`);
     }
   };
@@ -97,7 +105,9 @@ export const TrackingDebugger = () => {
         user_agent: navigator.userAgent,
         screen_width: window.innerWidth,
         screen_height: window.innerHeight,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        page_title: document.title,
+        event_type: 'test_ping'
       });
       
       if (error) {
@@ -128,6 +138,31 @@ export const TrackingDebugger = () => {
     } catch (error) {
       console.error('Error sending test ping:', error);
       toast.error(`Error sending test ping: ${error}`);
+    }
+  };
+  
+  const checkPageViewsTable = async () => {
+    try {
+      setTestResult("Checking page_views table data...");
+      const { data, error } = await supabase
+        .from('page_views')
+        .select('*')
+        .limit(5);
+      
+      if (error) {
+        setTestResult(`Error fetching data: ${error.message}`);
+        toast.error(`Error fetching data: ${error.message}`);
+      } else {
+        const resultText = data.length > 0 
+          ? `Found ${data.length} records in page_views table. Latest: ${JSON.stringify(data[0], null, 2)}` 
+          : 'No records found in page_views table.';
+        setTestResult(resultText);
+        toast.info(data.length > 0 ? `Found ${data.length} records` : 'No records found');
+      }
+    } catch (error) {
+      console.error('Error checking table:', error);
+      setTestResult(`Error checking table: ${error}`);
+      toast.error(`Error checking table: ${error}`);
     }
   };
 
@@ -177,6 +212,11 @@ export const TrackingDebugger = () => {
             <p>Table accessible: <span className={status?.supbaseConfigured?.tableAccessible ? 'text-green-600' : 'text-red-600'}>
               {status?.supbaseConfigured?.tableAccessible ? 'Yes' : 'No'}
             </span></p>
+            {connectionDetails && (
+              <div className="mt-2 bg-gray-100 rounded p-2 text-xs overflow-auto max-h-24">
+                <pre>{connectionDetails}</pre>
+              </div>
+            )}
             {testResult && (
               <p className="mt-2 p-2 bg-gray-100 rounded text-xs">
                 Test result: {testResult}
@@ -198,9 +238,14 @@ export const TrackingDebugger = () => {
               Send Test Ping
             </Button>
           </div>
-          <Button size="sm" variant="secondary" onClick={testDirectSupabaseConnection}>
-            Test Direct Supabase Connection
-          </Button>
+          <div className="flex justify-between">
+            <Button size="sm" variant="secondary" onClick={testDirectSupabaseConnection}>
+              Test Supabase Connection
+            </Button>
+            <Button size="sm" variant="outline" onClick={checkPageViewsTable}>
+              Check Table Data
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -73,11 +73,29 @@ const getSupabaseIntegrationStatus = () => {
       tableAccessible: tableAccessWorks,
       integrationDetails: {
         clientAvailable: !!supabase
-        // Remove access to protected property
       }
     };
   } catch (e) {
     console.error('Error checking Supabase integration status:', e);
     return { error: String(e) };
+  }
+};
+
+// Add a test function to manually check Supabase connection
+export const testSupabaseConnection = async () => {
+  try {
+    console.log('Testing Supabase connection...');
+    const { data, error } = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      return { success: false, error };
+    }
+    
+    console.log('Supabase connection test successful:', data);
+    return { success: true, data };
+  } catch (e) {
+    console.error('Supabase connection test exception:', e);
+    return { success: false, error: String(e) };
   }
 };
