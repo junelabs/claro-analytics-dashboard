@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Navigation } from '@/components/Navigation';
 import { Layout } from '@/components/Layout';
 import { Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Pricing = () => {
   const lifetimePlan = {
@@ -56,14 +58,13 @@ const Pricing = () => {
                 ))}
               </ul>
               
-              <Button 
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
-                data-tally-open="n0aQ0j"
-                data-tally-emoji-text="👋"
-                data-tally-emoji-animation="wave"
-              >
-                {lifetimePlan.cta}
-              </Button>
+              <Link to="/beta-signup">
+                <Button 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {lifetimePlan.cta}
+                </Button>
+              </Link>
             </div>
           </div>
           
