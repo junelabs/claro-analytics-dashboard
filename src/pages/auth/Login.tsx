@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -131,8 +132,8 @@ const Login = () => {
             <CardFooter className="flex justify-center">
               <span className="text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link to="/auth/signup" className="text-indigo-500 hover:text-indigo-600">
-                  Sign up
+                <Link to="/pricing" className="text-indigo-500 hover:text-indigo-600">
+                  Get access
                 </Link>
               </span>
             </CardFooter>
