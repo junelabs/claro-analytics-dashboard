@@ -10,10 +10,3 @@
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
-
-# Handle dashboard subdomain
-[[redirects]]
-  from = "https://dashboard.claroinsights.com/*"
-  to = "/index.html"
-  status = 200
-  force = true

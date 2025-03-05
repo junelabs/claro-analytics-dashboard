@@ -13,8 +13,7 @@ export function isDashboardUrl(url: string): boolean {
         hostname.includes('127.0.0.1') ||
         hostname.includes('lovable.app') ||
         hostname.includes('lovable.dev') ||
-        hostname.includes('lovableproject.com') ||
-        hostname.includes('claroinsights.com')) {
+        hostname.includes('lovableproject.com')) {
       console.log('Dashboard detected via hostname:', hostname);
       return true;
     }
@@ -29,8 +28,7 @@ export function isDashboardUrl(url: string): boolean {
     
     // Check for specific query parameters
     if (urlObj.searchParams.has('analytics') || 
-        urlObj.searchParams.has('dashboard') ||
-        url.includes('claro-analytics')) {
+        urlObj.searchParams.has('dashboard')) {
       return true;
     }
     
@@ -39,7 +37,6 @@ export function isDashboardUrl(url: string): boolean {
     // If URL parsing fails, fall back to simple string matching
     return url.includes('localhost') ||
            url.includes('lovable') ||
-           url.includes('claroinsights.com') ||
            url.includes('/dashboard') ||
            url.includes('/analytics');
   }

@@ -16,11 +16,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Check if we're in production to determine the correct redirect domain
-const isProd = window.location.hostname === 'claroinsights.com' || 
-               window.location.hostname === 'www.claroinsights.com';
-const dashboardUrl = isProd ? 'https://dashboard.claroinsights.com' : '/dashboard';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -92,13 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have successfully signed in."
       });
       
-      if (isProd) {
-        // Redirect to the dashboard subdomain in production
-        window.location.href = dashboardUrl;
-      } else {
-        // Use regular navigation in development
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast.error("Sign in failed", {

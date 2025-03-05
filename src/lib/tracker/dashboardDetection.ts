@@ -11,8 +11,7 @@ export const dashboardDetection = `
     // Check for domains which host the analytics dashboard
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
-        hostname.includes('lovableproject.com') ||
-        hostname.includes('claroinsights.com')) {
+        hostname.includes('lovableproject.com')) {
       debug.log('Analytics dashboard domain detected, skipping tracking');
       return true;
     }
