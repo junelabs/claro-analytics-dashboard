@@ -19,17 +19,21 @@ export const getActiveVisitorCount = async (siteId: string) => {
       const mockData = getMockData();
       const recentSessions = mockData.filter(item => {
         const timestamp = new Date(item.timestamp || item.created_at);
-        return timestamp >= new Date(fiveMinutesAgo) && item.site_id === siteId;
+        const isRecent = timestamp >= new Date(fiveMinutesAgo);
+        const matchesSiteId = item.site_id === siteId;
+        return isRecent && matchesSiteId;
       });
       
       // Count unique user agents (as a proxy for unique visitors)
       const uniqueAgents = new Set(recentSessions.map(item => item.user_agent));
       const activeCount = uniqueAgents.size;
       
+      console.log(`Found ${activeCount} active visitors in mock data`);
       return { success: true, data: activeCount };
     }
     
     // Query Supabase for page views in the last 5 minutes
+    console.log(`Querying active visitors for site ${siteId} since ${fiveMinutesAgo}`);
     const { data, error } = await supabase
       .from('page_views')
       .select('user_agent')
@@ -42,9 +46,10 @@ export const getActiveVisitorCount = async (siteId: string) => {
     }
     
     // Count unique user agents as a proxy for unique active visitors
-    const uniqueAgents = new Set(data.map(view => view.user_agent));
+    const uniqueAgents = new Set(data?.map(view => view.user_agent) || []);
     const activeCount = uniqueAgents.size;
     
+    console.log(`Found ${activeCount} active visitors in database`);
     return { success: true, data: activeCount };
   } catch (error) {
     console.error('Error fetching active visitors:', error);

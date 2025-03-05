@@ -12,14 +12,20 @@ export const isDashboardUrl = (url: string): boolean => {
     const hostname = urlObj.hostname.toLowerCase();
     const path = urlObj.pathname.toLowerCase();
     
-    // More selective detection of dashboard URLs
-    // Only classify as dashboard if it's explicitly in a dashboard path
-    if (path.includes('/dashboard') || path.includes('/analytics')) {
-      console.log('Analytics dashboard path detected:', path);
+    // More precise detection of dashboard URLs
+    // Check for dashboard in the path
+    if (path.includes('/dashboard')) {
+      console.log('Dashboard path detected:', path);
       return true;
     }
     
-    // Only treat specific domains as dashboard
+    // Check for analytics in the path
+    if (path.includes('/analytics')) {
+      console.log('Analytics path detected:', path);
+      return true;
+    }
+    
+    // Check for specific dashboard domains
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
         hostname.includes('lovableproject.com')) {
@@ -27,10 +33,17 @@ export const isDashboardUrl = (url: string): boolean => {
       return true;
     }
     
-    // For localhost, only treat as dashboard if explicit dashboard path
+    // Localhost detection - only treat as dashboard if explicit dashboard path
     if ((hostname === 'localhost' || hostname === '127.0.0.1') && 
         (path === '/' || path.includes('/dashboard'))) {
       console.log('Dashboard localhost detected');
+      return true;
+    }
+    
+    // Additional check for preview URLs
+    if (hostname.includes('preview') && 
+        (path === '/' || path.includes('/dashboard'))) {
+      console.log('Preview dashboard URL detected');
       return true;
     }
     
