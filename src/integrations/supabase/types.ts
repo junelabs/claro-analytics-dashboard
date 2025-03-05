@@ -12,7 +12,9 @@ export type Database = {
       page_views: {
         Row: {
           created_at: string
+          event_type: string | null
           id: number
+          page_title: string | null
           referrer: string | null
           screen_height: number | null
           screen_width: number | null
@@ -23,7 +25,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          event_type?: string | null
           id?: number
+          page_title?: string | null
           referrer?: string | null
           screen_height?: number | null
           screen_width?: number | null
@@ -34,7 +38,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          event_type?: string | null
           id?: number
+          page_title?: string | null
           referrer?: string | null
           screen_height?: number | null
           screen_width?: number | null

@@ -49,7 +49,8 @@ export const trackPageView = async (data: {
         screen_height: data.screenHeight,
         timestamp: data.timestamp || new Date().toISOString(),
         created_at: data.timestamp || new Date().toISOString(),
-        event_type: data.eventType || 'page_view'
+        event_type: data.eventType || 'page_view',
+        page_title: data.pageTitle || ''
       });
       localStorage.setItem('claro_mock_analytics_data', JSON.stringify(mockData));
       console.log('Added tracking data to mock storage (development mode)');
