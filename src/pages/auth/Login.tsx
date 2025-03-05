@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,12 @@ import { LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Layout } from '@/components/Layout';
+
+const isProd = window.location.hostname === 'claroinsights.com' || 
+               window.location.hostname === 'www.claroinsights.com';
+const redirectUrl = isProd 
+  ? `https://dashboard.claroinsights.com` 
+  : `${window.location.origin}/dashboard`;
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -39,7 +44,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: redirectUrl,
         },
       });
 
