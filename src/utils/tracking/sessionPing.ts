@@ -1,4 +1,3 @@
-
 import { isDashboardUrl } from './urlUtils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -94,7 +93,7 @@ export const pingActiveSession = async () => {
         return await fallbackToApiEndpoint(pingData, thisPingNum);
       } else {
         console.log(`[Ping ${thisPingNum}] ✅ Direct Supabase insertion successful. Duration: ${duration}ms`, data);
-        lastPingTime = now;
+        lastPingTime = Date.now();
         return {
           success: true,
           method: 'direct',

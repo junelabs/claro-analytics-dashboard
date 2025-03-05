@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getTrackingStatus, testSupabaseConnection } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
@@ -48,11 +47,11 @@ export const TrackingDebugger = () => {
     setTestResult("Testing direct Supabase connection...");
     
     try {
-      // Get configuration from environment variables instead of accessing protected properties
+      // Get configuration directly from the supabase client
       const clientDetails = {
         clientAvailable: !!supabase,
-        supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'Not available',
-        hasApiKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+        supabaseUrl: supabase.supabaseUrl || 'Not available',
+        hasApiKey: !!supabase.supabaseKey,
       };
       
       console.log('Supabase client details:', clientDetails);
