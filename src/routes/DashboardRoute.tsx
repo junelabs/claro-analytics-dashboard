@@ -11,6 +11,9 @@ const DashboardRoute = () => {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
   
+  // Detect if we're on the dashboard subdomain
+  const isDashboardDomain = window.location.hostname === 'dashboard.claroinsights.com';
+  
   useEffect(() => {
     // If there's an error in the URL (like after a failed authentication)
     const params = new URLSearchParams(location.search);
@@ -53,6 +56,11 @@ const DashboardRoute = () => {
   // If no user is authenticated after checking, redirect to login
   if (!user && !session) {
     console.log('No authenticated user found, redirecting to login');
+    // If on dashboard subdomain, redirect to main domain login
+    if (isDashboardDomain) {
+      window.location.href = 'https://claroinsights.com/auth/login';
+      return null;
+    }
     return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
   }
   

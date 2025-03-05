@@ -10,5 +10,6 @@
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
-  ]
+  ],
+  "domains": ["claroinsights.com", "www.claroinsights.com", "dashboard.claroinsights.com"]
 }

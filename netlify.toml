@@ -1,10 +1,19 @@
 
+# Redirect all traffic to index.html for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# Enable CORS for API requests
 [[headers]]
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
+
+# Handle dashboard subdomain
+[[redirects]]
+  from = "https://dashboard.claroinsights.com/*"
+  to = "/index.html"
+  status = 200
+  force = true
