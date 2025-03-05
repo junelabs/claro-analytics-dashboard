@@ -1,12 +1,47 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Navigation } from '@/components/Navigation';
 import { Layout } from '@/components/Layout';
 import { Check } from 'lucide-react';
 
+declare global {
+  interface Window {
+    Tally?: {
+      openPopup: (formId: string, options?: any) => void;
+    };
+  }
+}
+
 const Pricing = () => {
+  useEffect(() => {
+    // Load Tally script
+    const script = document.createElement('script');
+    script.src = 'https://tally.so/widgets/embed.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Clean up script when component unmounts
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleGetAccess = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Open Tally popup form
+    // Replace 'YOUR_FORM_ID' with your actual Tally form ID
+    if (window.Tally) {
+      window.Tally.openPopup('YOUR_FORM_ID', {
+        width: 540,
+        autoClose: 3000,
+      });
+    } else {
+      console.error('Tally.so script not loaded yet');
+    }
+  };
+
   const lifetimePlan = {
     name: "Lifetime",
     price: "$99",
@@ -58,13 +93,12 @@ const Pricing = () => {
                 ))}
               </ul>
               
-              <Link to="/auth/signup">
-                <Button 
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {lifetimePlan.cta}
-                </Button>
-              </Link>
+              <Button 
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                onClick={handleGetAccess}
+              >
+                {lifetimePlan.cta}
+              </Button>
             </div>
           </div>
           
