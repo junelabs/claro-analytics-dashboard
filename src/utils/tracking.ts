@@ -1,4 +1,3 @@
-
 // Tracking utility functions
 
 // Track already processed URLs to prevent duplicate page views
@@ -71,7 +70,7 @@ export const isDashboardUrl = (url: string): boolean => {
 };
 
 // Ping interval for active sessions
-export const pingInterval = 60000;
+export const pingInterval = 30000; // Change to 30 seconds for more frequent updates
 let lastPingTime = 0;
 let lastPageViewUrl = '';
 let lastPageViewTime = 0;
@@ -144,12 +143,14 @@ export const shouldTrackPageView = () => {
   return true;
 };
 
-// Initialize ping functionality
+// Enhanced initialize tracking function with more frequent updates
 export const initializePingTracking = () => {
   console.log('Initializing ping tracking with current URL:', window.location.href);
   if (!isDashboardUrl(window.location.href)) {
     console.log('This is a client site, initializing tracking');
-    pingActiveSession();
+    pingActiveSession(); // Initial ping
+    
+    // More frequent pinging for better real-time data
     setInterval(pingActiveSession, pingInterval);
     
     document.addEventListener('visibilitychange', () => {
@@ -171,7 +172,7 @@ export const initializePingTracking = () => {
       }, { passive: true });
     });
     
-    // Add initial page view tracking
+    // Add initial page view tracking with better logging
     if (shouldTrackPageView()) {
       console.log('Tracking initial page view');
       const siteId = localStorage.getItem('claro_site_id');

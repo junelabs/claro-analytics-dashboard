@@ -41,6 +41,7 @@ const Index = () => {
     return newId;
   });
   const [isLiveCount, setIsLiveCount] = useState(false);
+  const [liveUpdateInterval, setLiveUpdateInterval] = useState<NodeJS.Timeout | null>(null);
   const [graphFilters, setGraphFilters] = useState({
     visitorChart: true,
     abandonment: true,
@@ -100,9 +101,15 @@ const Index = () => {
     
     fetchData();
     
-    const intervalId = setInterval(fetchData, 15000);
+    if (liveUpdateInterval) clearInterval(liveUpdateInterval);
     
-    return () => clearInterval(intervalId);
+    const intervalId = setInterval(fetchData, 10000);
+    setLiveUpdateInterval(intervalId);
+    
+    return () => {
+      if (liveUpdateInterval) clearInterval(liveUpdateInterval);
+      clearInterval(intervalId);
+    };
   }, [siteId, dateRange]);
 
   const handleFilterClick = () => {
@@ -204,7 +211,12 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <div className="flex space-x-2 items-center">
               <div className="text-sm font-medium text-gray-600">{siteName}</div>
-              <CurrentVisitors count={currentVisitors} siteName={siteName} isLive={isLiveCount} />
+              <CurrentVisitors 
+                count={currentVisitors} 
+                siteName={siteName} 
+                isLive={isLiveCount} 
+                autoRefresh={true} 
+              />
             </div>
             <div className="flex items-center space-x-3">
               <FilterButton 

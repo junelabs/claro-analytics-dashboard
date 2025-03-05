@@ -25,7 +25,7 @@ export const trackerScript = `
 
   // Cache tracking status to prevent multiple loads
   const TRACKER_CACHE_KEY = 'claro_last_track_' + window.location.href;
-  const TRACK_INTERVAL = 60000; // 60 seconds
+  const TRACK_INTERVAL = 30000; // Change to 30 seconds for more frequent updates
 
   if (!SITE_ID) {
     debug.warn('No site ID provided. Add data-site-id attribute to your script tag. Tracking will continue but data may not be associated correctly.');
@@ -218,7 +218,7 @@ export const trackerScript = `
     trackPageView();
   });
   
-  // Set up active session pinging
+  // Set up active session pinging with more frequent updates
   function pingSession() {
     if (isDashboard()) return;
     
@@ -253,8 +253,8 @@ export const trackerScript = `
     }
   }
   
-  // Ping every minute to keep session active
-  setInterval(pingSession, 60000);
+  // Ping more frequently to keep session active and data fresh
+  setInterval(pingSession, 30000); // Every 30 seconds
   
   // Ping on user activity
   ['click', 'scroll', 'keypress', 'mousemove'].forEach(eventType => {
