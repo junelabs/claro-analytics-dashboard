@@ -20,6 +20,7 @@ import { LocationAnalytics } from '@/components/LocationAnalytics';
 import { RevenueSources } from '@/components/RevenueSources';
 import { RevenueTrends } from '@/components/RevenueTrends';
 import { useTracking } from '@/hooks/useTracking';
+import { TrackingDebugger } from '@/components/TrackingDebugger';
 
 const Index = () => {
   useTracking();
@@ -314,6 +315,8 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      <TrackingDebugger />
     </Layout>
   );
 };

@@ -32,6 +32,37 @@ export const getTrackingStatus = () => {
     lastPageViewTime,
     timeSinceLastTracking: lastPageViewTime ? `${Math.floor((Date.now() - lastPageViewTime) / 1000)}s ago` : 'Never tracked',
     trackingEnabled: !!localStorage.getItem('claro_site_id'),
-    siteId: localStorage.getItem('claro_site_id')
+    siteId: localStorage.getItem('claro_site_id'),
+    supbaseConfigured: checkSupabaseConfig()
   };
+};
+
+// Helper to check if Supabase is properly configured
+const checkSupabaseConfig = () => {
+  try {
+    // Check environment variables
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    // Check client config from integrations
+    let integrationConfigured = false;
+    try {
+      const integrationModule = require('@/integrations/supabase/client');
+      integrationConfigured = !!integrationModule.supabase;
+    } catch (e) {
+      console.error('Error checking integration configuration:', e);
+    }
+    
+    return {
+      hasEnvVars: !!(supabaseUrl && supabaseKey),
+      integrationConfigured,
+      envDetails: {
+        supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
+        supabaseKey: supabaseKey ? 'Set' : 'Missing'
+      }
+    };
+  } catch (e) {
+    console.error('Error checking Supabase config:', e);
+    return { error: String(e) };
+  }
 };

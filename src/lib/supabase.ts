@@ -122,6 +122,7 @@ export const trackPageView = async (data: {
   pageTitle?: string;
   isPing?: boolean;
   eventType?: string;
+  isTest?: boolean;
 }) => {
   try {
     console.log('Tracking request received:', data);
@@ -133,7 +134,7 @@ export const trackPageView = async (data: {
     }
     
     // Skip if this is a duplicate within the time window
-    if (isDuplicate(data)) {
+    if (!data.isTest && isDuplicate(data)) {
       console.log('Skipping duplicate tracking request for URL:', data.url);
       return { success: true, skipped: 'duplicate' };
     }
@@ -156,10 +157,39 @@ export const trackPageView = async (data: {
         event_type: data.eventType || 'page_view'
       });
       localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(mockData));
-      return { success: true };
+      console.log('Added tracking data to mock storage (development mode)');
+      return { success: true, mock: true };
     }
     
-    const { error } = await supabase
+    // Log the supabase instance to check for proper initialization
+    console.log('Supabase instance check:', 
+      supabase ? 'Instance exists' : 'No instance', 
+      supabase?.from ? 'from() available' : 'from() unavailable'
+    );
+    
+    try {
+      // Test connection to Supabase
+      const testResponse = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
+      console.log('Supabase connection test:', testResponse);
+    } catch (connectionError) {
+      console.error('Supabase connection test failed:', connectionError);
+    }
+    
+    // Use supabase client from integrations if available
+    let supabaseClient = supabase;
+    try {
+      const integrationModule = require('@/integrations/supabase/client');
+      if (integrationModule.supabase) {
+        console.log('Using supabase client from integrations module');
+        supabaseClient = integrationModule.supabase;
+      }
+    } catch (e) {
+      console.log('Integration module not available, using default client');
+    }
+    
+    // Insert tracking data
+    console.log('Inserting tracking data into page_views table');
+    const { data: insertedData, error } = await supabaseClient
       .from('page_views')
       .insert([{
         site_id: data.siteId,
@@ -171,16 +201,19 @@ export const trackPageView = async (data: {
         page_title: data.pageTitle || '',
         timestamp: data.timestamp || new Date().toISOString(),
         event_type: data.eventType || 'page_view'
-      }]);
+      }])
+      .select();
     
     if (error) {
-      console.error('Error tracking page view:', error);
+      console.error('Error tracking page view in Supabase:', error);
       throw error;
     }
-    return { success: true };
+    
+    console.log('Successfully inserted tracking data:', insertedData);
+    return { success: true, data: insertedData };
   } catch (error) {
     console.error('Error tracking page view:', error);
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 };
 
@@ -445,7 +478,8 @@ export const handleTrackingRequest = async (request: Request) => {
     console.error('Error handling tracking request:', error);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: 'Server error processing request' 
+      error: 'Server error processing request',
+      errorDetails: String(error)
     }), {
       status: 500,
       headers: getCorsHeaders()
