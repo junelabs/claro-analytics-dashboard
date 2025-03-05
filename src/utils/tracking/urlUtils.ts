@@ -1,4 +1,3 @@
-
 // Helper to determine if a URL is from the analytics dashboard
 export const isDashboardUrl = (url: string): boolean => {
   try {
@@ -26,7 +25,8 @@ export const isDashboardUrl = (url: string): boolean => {
     // Check for specific dashboard domains
     if (hostname.includes('lovable.app') || 
         hostname.includes('lovable.dev') || 
-        hostname.includes('lovableproject.com')) {
+        hostname.includes('lovableproject.com') ||
+        hostname.includes('claroinsights.com')) {
       return true;
     }
     
@@ -47,6 +47,8 @@ export const isDashboardUrl = (url: string): boolean => {
   } catch (e) {
     console.error('Error parsing URL:', e);
     // Simpler fallback - only detect explicit dashboard keywords
-    return url.includes('/dashboard') || url.includes('/analytics');
+    return url.includes('/dashboard') || 
+           url.includes('/analytics') || 
+           url.includes('claroinsights.com');
   }
 };
