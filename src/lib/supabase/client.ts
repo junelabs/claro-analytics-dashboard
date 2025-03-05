@@ -9,7 +9,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const isMissingCredentials = !supabaseUrl || !supabaseKey;
 
 if (isMissingCredentials) {
-  console.warn('Supabase credentials missing. Using mock implementation for development.');
+  console.warn('Supabase credentials missing in environment. Using mock implementation for development.');
+  console.warn('For production tracking, please use the integration client from @/integrations/supabase/client');
 }
 
 // Create client with fallback for development

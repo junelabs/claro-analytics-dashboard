@@ -1,5 +1,6 @@
 
-import { supabase } from './client';
+import { supabase as defaultSupabase } from './client';
+import { supabase as integrationsSupabase } from '@/integrations/supabase/client';
 import { isDashboardUrl } from './urlUtils';
 import { getMockData, isDuplicate } from './mockData';
 
@@ -33,8 +34,12 @@ export const trackPageView = async (data: {
     
     console.log('Processing tracking for:', data.url, 'Event type:', data.eventType || 'page_view');
     
+    // Choose the appropriate Supabase client
+    // Always prefer the integrations client as it has hardcoded credentials
+    const supabaseClient = integrationsSupabase || defaultSupabase;
+    
     // Check if we're missing Supabase credentials
-    const isMissingCredentials = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const isMissingCredentials = !supabaseClient || !supabaseClient.from;
     
     if (isMissingCredentials) {
       // If in development, store the page view in localStorage mock data
@@ -57,31 +62,11 @@ export const trackPageView = async (data: {
       return { success: true, mock: true };
     }
     
-    // Log the supabase instance to check for proper initialization
-    console.log('Supabase instance check:', 
-      supabase ? 'Instance exists' : 'No instance', 
-      supabase?.from ? 'from() available' : 'from() unavailable'
+    // Log the supabase client details to verify proper configuration
+    console.log('Supabase client check:', 
+      supabaseClient ? 'Instance exists' : 'No instance', 
+      supabaseClient?.from ? 'from() available' : 'from() unavailable'
     );
-    
-    try {
-      // Test connection to Supabase
-      const testResponse = await supabase.from('page_views').select('count(*)', { count: 'exact', head: true });
-      console.log('Supabase connection test:', testResponse);
-    } catch (connectionError) {
-      console.error('Supabase connection test failed:', connectionError);
-    }
-    
-    // Use supabase client from integrations if available
-    let supabaseClient = supabase;
-    try {
-      const integrationModule = require('@/integrations/supabase/client');
-      if (integrationModule.supabase) {
-        console.log('Using supabase client from integrations module');
-        supabaseClient = integrationModule.supabase;
-      }
-    } catch (e) {
-      console.log('Integration module not available, using default client');
-    }
     
     // Insert tracking data
     console.log('Inserting tracking data into page_views table');
