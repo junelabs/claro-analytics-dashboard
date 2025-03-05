@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getTrackingStatus, testSupabaseConnection } from '@/utils/tracking/pageView';
 import { isDashboardUrl } from '@/utils/tracking/urlUtils';
+import { getPingDiagnostics, pingActiveSession } from '@/utils/tracking/sessionPing';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,9 @@ export const TrackingDebugger = () => {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState<string>('');
   const [connectionDetails, setConnectionDetails] = useState<string | null>(null);
+  const [pingStats, setPingStats] = useState<any>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,32 +40,56 @@ export const TrackingDebugger = () => {
 
   const refreshStatus = () => {
     setStatus(getTrackingStatus());
+    setPingStats(getPingDiagnostics());
   };
 
   const testDirectSupabaseConnection = async () => {
+    setIsTesting(true);
     setTestResult("Testing direct Supabase connection...");
+    
     try {
       // Log the client details
-      console.log('Supabase client:', supabase ? 'Available' : 'Not available');
+      const clientDetails = {
+        clientAvailable: !!supabase,
+        supabaseUrl: supabase?.supabaseUrl || 'Not available',
+        hasApiKey: !!supabase?.supabaseKey,
+        functionsUrl: supabase?.functionsUrl || 'Not available'
+      };
       
-      // Get project information
-      const connectionInfo = await fetch('https://fnpmaffptlkwjioccifp.supabase.co/rest/v1/', {
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucG1hZmZwdGxrd2ppb2NjaWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4NTc0MTksImV4cCI6MjA1NjQzMzQxOX0.c6IqlWlVDK0aUsT84b00t1zIj3DKI4i0bMef3NuMnq0'
-        }
-      }).then(res => res.json()).catch(err => ({ error: err.message }));
-      
-      setConnectionDetails(JSON.stringify(connectionInfo, null, 2));
+      console.log('Supabase client details:', clientDetails);
+      setConnectionDetails(JSON.stringify(clientDetails, null, 2));
       
       // Test direct connection to Supabase
+      setIsLoading(true);
       const response = await testSupabaseConnection();
+      setIsLoading(false);
       
       if (!response.success) {
-        setTestResult(`Connection error: ${JSON.stringify(response.error)}`);
-        toast.error(`Error connecting to Supabase: ${JSON.stringify(response.error)}`);
-        console.error('Connection test response error:', response.error);
+        let errorDetails = '';
+        
+        if (response.errorMessage) {
+          errorDetails = response.errorMessage;
+        } else if (response.error) {
+          if (typeof response.error === 'object') {
+            errorDetails = JSON.stringify(response.error, null, 2);
+          } else {
+            errorDetails = response.error.toString();
+          }
+        }
+        
+        setTestResult(`Connection error: ${errorDetails}`);
+        if (response.hint) {
+          setTestResult(prev => `${prev}\nHint: ${response.hint}`);
+        }
+        if (response.statusCode) {
+          setTestResult(prev => `${prev}\nStatus Code: ${response.statusCode}`);
+        }
+        
+        toast.error(`Error connecting to Supabase: ${errorDetails}`);
+        console.error('Connection test response error:', response);
       } else {
-        setTestResult(`Connection successful! Table exists and is accessible.`);
+        const countText = response.count !== undefined ? ` Found ${response.count} records.` : '';
+        setTestResult(`Connection successful! Table exists and is accessible.${countText}`);
         toast.success('Successfully connected to Supabase page_views table!');
         console.log('Connection test successful:', response);
       }
@@ -69,6 +97,9 @@ export const TrackingDebugger = () => {
       console.error('Error testing connection:', error);
       setTestResult(`Connection exception: ${error}`);
       toast.error(`Error testing connection: ${error}`);
+    } finally {
+      setIsTesting(false);
+      setIsLoading(false);
     }
   };
 
@@ -81,88 +112,103 @@ export const TrackingDebugger = () => {
       }
 
       toast.info('Sending test ping...');
+      setIsLoading(true);
       
-      const pingData = {
-        siteId,
-        url: window.location.href,
-        referrer: document.referrer,
-        userAgent: navigator.userAgent,
-        screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
-        timestamp: new Date().toISOString(),
-        pageTitle: document.title,
-        eventType: 'test_ping',
-        isTest: true
-      };
+      // Send a test ping using the existing function
+      const pingResult = await pingActiveSession();
+      console.log('Test ping result:', pingResult);
       
-      console.log('Sending test ping with data:', pingData);
-      
-      // Try direct Supabase insertion
-      const { data, error } = await supabase.from('page_views').insert({
-        site_id: siteId,
-        url: window.location.href,
-        referrer: document.referrer,
-        user_agent: navigator.userAgent,
-        screen_width: window.innerWidth,
-        screen_height: window.innerHeight,
-        timestamp: new Date().toISOString(),
-        page_title: document.title,
-        event_type: 'test_ping'
-      });
-      
-      if (error) {
-        console.error('Direct Supabase insertion error:', error);
-        toast.error(`Direct insertion error: ${error.message}`);
+      if (pingResult.success) {
+        toast.success(`Test ping sent successfully via ${pingResult.method || 'unknown'} method!`);
+      } else if (pingResult.skipped) {
+        toast.info(`Test ping skipped: ${pingResult.reason}`);
       } else {
-        console.log('Direct Supabase insertion successful:', data);
-        toast.success('Test ping directly inserted to Supabase!');
-      }
-      
-      // Also try API route for comparison
-      const response = await fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pingData)
-      });
-      
-      const apiData = await response.json();
-      console.log('API route test ping response:', apiData);
-      
-      if (apiData.success) {
-        toast.success('API route test ping sent successfully!');
-      } else {
-        toast.error(`API route error: ${apiData.error || 'Unknown error'}`);
+        toast.error(`Test ping failed: ${pingResult.error || 'Unknown error'}`);
       }
       
       refreshStatus();
     } catch (error) {
       console.error('Error sending test ping:', error);
       toast.error(`Error sending test ping: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
   };
   
   const checkPageViewsTable = async () => {
     try {
       setTestResult("Checking page_views table data...");
-      const { data, error } = await supabase
+      setIsLoading(true);
+      
+      const { data, error, count } = await supabase
         .from('page_views')
-        .select('*')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
         .limit(5);
       
       if (error) {
         setTestResult(`Error fetching data: ${error.message}`);
         toast.error(`Error fetching data: ${error.message}`);
       } else {
-        const resultText = data.length > 0 
-          ? `Found ${data.length} records in page_views table. Latest: ${JSON.stringify(data[0], null, 2)}` 
-          : 'No records found in page_views table.';
+        const countText = count !== undefined ? `${count} total records. ` : '';
+        const resultText = data && data.length > 0 
+          ? `${countText}Found ${data.length} recent records in page_views table. Latest: ${JSON.stringify(data[0], null, 2)}` 
+          : `${countText}No records found in page_views table.`;
         setTestResult(resultText);
-        toast.info(data.length > 0 ? `Found ${data.length} records` : 'No records found');
+        
+        if (data && data.length > 0) {
+          toast.success(`Found ${data.length} records in the table`);
+        } else {
+          toast.info('No records found in the table');
+        }
       }
     } catch (error) {
       console.error('Error checking table:', error);
       setTestResult(`Error checking table: ${error}`);
       toast.error(`Error checking table: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const checkSiteReachability = async () => {
+    try {
+      const siteId = localStorage.getItem('claro_site_id');
+      if (!siteId) {
+        toast.error('No site ID found.');
+        return;
+      }
+      
+      setTestResult("Checking API endpoint reachability...");
+      setIsLoading(true);
+      
+      try {
+        const url = `${window.location.origin}/api/track`;
+        console.log(`Testing API endpoint at ${url}`);
+        
+        const response = await fetch(url, {
+          method: 'OPTIONS',
+          headers: { 
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          setTestResult(`API endpoint is reachable! Status: ${response.status}`);
+          toast.success('API endpoint is reachable');
+        } else {
+          setTestResult(`API endpoint returned error status: ${response.status} ${response.statusText}`);
+          toast.error(`API error: ${response.status} ${response.statusText}`);
+        }
+      } catch (error) {
+        setTestResult(`Cannot reach API endpoint: ${error}`);
+        toast.error(`Cannot reach API: ${error}`);
+      }
+    } catch (error) {
+      console.error('Error checking site reachability:', error);
+      setTestResult(`Error: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -204,6 +250,17 @@ export const TrackingDebugger = () => {
         </div>
         
         <div className="border-b pb-2">
+          <h4 className="font-medium text-sm mb-1">Ping Statistics</h4>
+          <div className="text-xs space-y-1">
+            <p>Total pings: {pingStats?.totalPings || 0}</p>
+            <p>Failed pings: {pingStats?.failedPings || 0}</p>
+            <p>Last ping: {pingStats?.lastPingTime || 'Never'}</p>
+            <p>Time since last ping: {pingStats?.timeSinceLastPing || 'Never'}</p>
+            <p>Ping interval: {pingStats?.pingInterval || 'Unknown'}</p>
+          </div>
+        </div>
+        
+        <div className="border-b pb-2">
           <h4 className="font-medium text-sm mb-1">Supabase Configuration</h4>
           <div className="text-xs space-y-1">
             <p>Client available: <span className={status?.supbaseConfigured?.hasConfiguredClient ? 'text-green-600' : 'text-red-600'}>
@@ -212,40 +269,86 @@ export const TrackingDebugger = () => {
             <p>Table accessible: <span className={status?.supbaseConfigured?.tableAccessible ? 'text-green-600' : 'text-red-600'}>
               {status?.supbaseConfigured?.tableAccessible ? 'Yes' : 'No'}
             </span></p>
+            <p>Project URL: <span className="font-mono text-xs break-words">
+              {status?.supbaseConfigured?.integrationDetails?.projectUrl || 'Not available'}
+            </span></p>
+            <p>API Key set: {status?.supbaseConfigured?.integrationDetails?.hasApiKey ? 'Yes' : 'No'}</p>
+            
             {connectionDetails && (
               <div className="mt-2 bg-gray-100 rounded p-2 text-xs overflow-auto max-h-24">
                 <pre>{connectionDetails}</pre>
               </div>
             )}
             {testResult && (
-              <p className="mt-2 p-2 bg-gray-100 rounded text-xs">
+              <div className="mt-2 p-2 bg-gray-100 rounded text-xs whitespace-pre-wrap overflow-auto max-h-40">
                 Test result: {testResult}
-              </p>
+              </div>
             )}
           </div>
         </div>
         
         <div className="flex flex-col space-y-2">
           <div className="flex justify-between">
-            <Button size="sm" variant="outline" onClick={() => {
-              refreshStatus();
-              setRefreshCount(prev => prev + 1);
-              setLastRefreshTime(new Date().toLocaleTimeString());
-            }}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                refreshStatus();
+                setRefreshCount(prev => prev + 1);
+                setLastRefreshTime(new Date().toLocaleTimeString());
+              }}
+              disabled={isLoading}
+            >
               Refresh Status
             </Button>
-            <Button size="sm" variant="default" onClick={sendTestPing}>
+            <Button 
+              size="sm" 
+              variant="default" 
+              onClick={sendTestPing}
+              disabled={isLoading}
+            >
               Send Test Ping
             </Button>
           </div>
           <div className="flex justify-between">
-            <Button size="sm" variant="secondary" onClick={testDirectSupabaseConnection}>
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              onClick={testDirectSupabaseConnection}
+              disabled={isTesting || isLoading}
+            >
               Test Supabase Connection
             </Button>
-            <Button size="sm" variant="outline" onClick={checkPageViewsTable}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={checkPageViewsTable}
+              disabled={isLoading}
+            >
               Check Table Data
             </Button>
           </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={checkSiteReachability}
+            disabled={isLoading}
+          >
+            Check API Reachability
+          </Button>
+        </div>
+        
+        <div className="text-xs text-gray-500 border-t pt-2 mt-2">
+          <p className="font-medium mb-1">Troubleshooting Steps:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Verify your Site ID is correctly set</li>
+            <li>Test the Supabase connection first</li>
+            <li>Send a test ping to verify the tracking flow</li>
+            <li>Check if any data is being stored in the table</li>
+            <li>Verify the tracking script is in the &lt;head&gt; of your website</li>
+            <li>Check browser console for JavaScript errors</li>
+            <li>Ensure CORS is properly configured</li>
+          </ol>
         </div>
       </div>
     </div>
